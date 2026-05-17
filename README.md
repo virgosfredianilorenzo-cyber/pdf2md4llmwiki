@@ -59,8 +59,7 @@ output/note.md         →  copie optionnelle dans le vault
 
 - Trilingue FR / EN / ES (boutons drapeau, persistance localStorage)
 - Badge modèle en temps réel : se met à jour instantanément au changement de modèle ou de mode
-- Compteur de temps restant avec estimation par modèle
-- Bouton Stop pour annuler une conversion en cours
+- Bouton Stop fonctionnel : annule la conversion côté serveur dès la déconnexion du client
 - Aperçu Markdown rendu ou source, téléchargement direct
 
 ---
@@ -72,7 +71,7 @@ output/note.md         →  copie optionnelle dans le vault
 | **Synthèses détaillées** | Oui (Ollama) | 30-120s | Note wiki complète avec synthèse par section |
 | **Brute structurée** | Non | < 1s | Contenu complet préservé, idéal pour archivage ou post-traitement |
 
-**Synthèses détaillées** — chaque section H2, même courte, reçoit un paragraphe de synthèse approfondie de 8 à 15 phrases, et le résumé global atteint 25 à 30 phrases. Optimisé pour l'alimentation d'un LLMWiki ou vault Obsidian.
+**Synthèses détaillées** — chaque section H2 reçoit un paragraphe de synthèse approfondie de 8 à 15 phrases, et le résumé global atteint 15 à 20 phrases. Frontmatter YAML entièrement compatible Obsidian (tags en liste, horodatage complet `YYYY-MM-DDTHH:MM:SS`).
 
 **Brute structurée** — extraction pure sans appel réseau. La hiérarchie du document (titres H1/H2/H3, paragraphes, tableaux) est préservée telle quelle dans le Markdown.
 

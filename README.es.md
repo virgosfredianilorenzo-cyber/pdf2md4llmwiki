@@ -41,8 +41,7 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 
 - Trilingüe FR / EN / ES (botones de bandera, persistencia localStorage)
 - Indicador de modelo en tiempo real: se actualiza al instante al cambiar de modelo o de modo
-- Contador de tiempo restante con estimación por modelo
-- Botón Stop para cancelar una conversión en curso
+- Botón Stop funcional: cancela la conversión en el servidor al detectar la desconexión del cliente
 - Vista previa Markdown renderizada o en fuente, descarga directa
 
 ---
@@ -54,7 +53,7 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 | **Síntesis detalladas** | Sí (Ollama) | 30-120s | Nota wiki completa con síntesis por sección |
 | **Bruta estructurada** | No | < 1s | Contenido completo preservado, ideal para archivo o post-procesamiento |
 
-**Síntesis detalladas** — cada sección H2, aunque sea corta, recibe un párrafo de síntesis en profundidad de 8 a 15 frases, y el resumen global alcanza 25 a 30 frases. Optimizado para LLMWiki o vault Obsidian.
+**Síntesis detalladas** — cada sección H2 recibe un párrafo de síntesis en profundidad de 8 a 15 frases, y el resumen global alcanza 15 a 20 frases. El frontmatter YAML es totalmente compatible con Obsidian (tags en lista, marca de tiempo completa `YYYY-MM-DDTHH:MM:SS`).
 
 **Bruta estructurada** — extracción pura sin llamada de red. La jerarquía del documento (títulos H1/H2/H3, párrafos, tablas) se conserva tal cual en Markdown.
 

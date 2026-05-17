@@ -41,8 +41,7 @@ Subsequent launches take 2-3 seconds.
 
 - Trilingual FR / EN / ES (flag buttons, localStorage persistence)
 - Live model badge: updates instantly when changing model or extraction mode
-- Countdown timer with per-model time estimate
-- Stop button to cancel an ongoing conversion
+- Functional Stop button: cancels conversion server-side on client disconnect
 - Rendered or source Markdown preview, direct download
 
 ---
@@ -54,7 +53,7 @@ Subsequent launches take 2-3 seconds.
 | **Detailed syntheses** | Yes (Ollama) | 30-120s | Full wiki note with per-section synthesis |
 | **Raw structured** | No | < 1s | Full content preserved, ideal for archiving or post-processing |
 
-**Detailed syntheses** — every H2 section, even short ones, gets an in-depth synthesis paragraph of 8 to 15 sentences, and the global summary reaches 25 to 30 sentences. Optimized for LLMWiki or Obsidian vault ingestion.
+**Detailed syntheses** — every H2 section gets an in-depth synthesis paragraph of 8 to 15 sentences, and the global summary reaches 15 to 20 sentences. YAML frontmatter is fully Obsidian-compatible (tags as list, full timestamp `YYYY-MM-DDTHH:MM:SS`).
 
 **Raw structured** — pure extraction with no network call. Document hierarchy (H1/H2/H3 headings, paragraphs, tables) is preserved as-is in Markdown.
 
