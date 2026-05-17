@@ -11,9 +11,12 @@ from extractor import PDFDocument, sections_to_text
 
 
 PROMPT_DETAILED = """\
-Tu es un assistant expert en knowledge management et en RAG (Retrieval Augmented Generation).
-Ta mission : transformer le contenu extrait d'un PDF en une note Markdown atomique,
+Tu es un expert en knowledge management, synthèse documentaire et RAG (Retrieval Augmented Generation).
+Ta mission : produire une note Markdown de HAUTE QUALITÉ à partir du contenu extrait d'un PDF,
 optimisée pour un LLMWiki (style Karpathy) ou un vault Obsidian.
+
+EXIGENCE PRINCIPALE : la qualité et la richesse du contenu priment sur la concision.
+Ne résume pas, ne survole pas — développe, explique, contextualise.
 
 === CONTENU DU DOCUMENT ===
 Titre : {title}
@@ -26,22 +29,37 @@ Pages : {pages}
 Génère une note Markdown structurée avec :
 
 1. Un bloc frontmatter YAML entre --- (titre, auteur, date_extraction, tags, source, résumé_court)
-2. Un résumé de 2-3 phrases (section ## Résumé)
-3. Le contenu restructuré en sections atomiques H2/H3 claires :
-   - CHAQUE section H2, même courte, doit commencer par un paragraphe de synthèse détaillée
-     (minimum 3-5 phrases expliquant l'essentiel, le contexte et les implications)
-   - Suivi du contenu détaillé (points clés, listes, tableaux)
-4. Des [[wikilinks]] pour les concepts importants (noms propres, termes techniques)
-5. Une section ## Concepts clés avec les termes définis brièvement
+
+2. Un résumé global (section ## Résumé) de 6 à 10 phrases couvrant :
+   - Le sujet principal et son contexte
+   - Les arguments ou thèses centraux
+   - Les conclusions ou apports clés
+   - La pertinence pour un LLMWiki
+
+3. Le contenu restructuré en sections H2/H3 :
+   - CHAQUE section H2, même courte, DOIT commencer par un paragraphe de synthèse approfondie
+     de 8 à 15 phrases minimum. Ce paragraphe doit :
+     * Expliquer le sujet de la section et son importance
+     * Développer les idées principales avec des détails et des exemples
+     * Contextualiser par rapport aux autres sections
+     * Dégager les implications, nuances ou points de vigilance
+     * Ne jamais se contenter de paraphraser — enrichir, interpréter, relier
+   - Suivi du contenu structuré (listes, tableaux, sous-sections H3)
+
+4. Des [[wikilinks]] pour TOUS les concepts importants (noms propres, termes techniques, entités)
+
+5. Une section ## Concepts clés avec chaque terme défini en 3-5 phrases (pas juste une ligne)
+
 6. Une section ## Références si des sources sont citées dans le doc
 
-Règles :
-- Langue : {language}
-- Tags : liste de {max_tags} mots-clés simples, en minuscules, sans espaces (utilise des tirets)
-- Chunks atomiques : chaque H2 doit être compréhensible indépendamment (optimisé RAG)
-- Supprime le bruit (numéros de page, en-têtes répétitifs, artefacts d'extraction)
+Règles absolues :
+- Langue de rédaction : {language}
+- Tags : {max_tags} mots-clés en minuscules avec tirets
+- Chaque H2 doit être compréhensible de façon autonome (optimisé RAG)
+- Supprime le bruit (numéros de page, en-têtes répétitifs, artefacts)
 - Préserve les tableaux en Markdown
-- NE génère PAS de commentaires sur ta démarche, SEULEMENT le Markdown final
+- NE génère PAS de commentaires méta sur ta démarche
+- NE tronque PAS — si le contenu est long, développe-le entièrement
 
 Commence directement par ---
 """
