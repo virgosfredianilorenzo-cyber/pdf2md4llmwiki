@@ -414,6 +414,51 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  #modalOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+  }
+  #modalOverlay.visible { opacity: 1; pointer-events: all; }
+  #modalDialog {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 28px 24px;
+    max-width: 360px;
+    width: 92%;
+    box-shadow: 0 24px 64px rgba(0,0,0,.6);
+    transform: translateY(12px) scale(.97);
+    transition: transform .2s, opacity .2s;
+    opacity: 0;
+  }
+  #modalOverlay.visible #modalDialog { transform: translateY(0) scale(1); opacity: 1; }
+  #modalIcon { font-size: 36px; text-align: center; margin-bottom: 14px; }
+  #modalTitle { font-size: 15px; font-weight: 600; color: var(--text); text-align: center; margin-bottom: 8px; }
+  #modalMsg { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.7; margin-bottom: 24px; }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-btn-cancel {
+    flex: 1; padding: 10px 14px; background: transparent;
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--muted); cursor: pointer; font-size: 13px;
+    transition: border-color .15s, color .15s;
+  }
+  .modal-btn-cancel:hover { border-color: var(--text); color: var(--text); }
+  .modal-btn-ok {
+    flex: 1; padding: 10px 14px;
+    background: var(--accent); border: none; border-radius: 8px;
+    color: white; cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: opacity .15s;
+  }
+  .modal-btn-ok:hover { opacity: .85; }
 </style>
 </head>
 <body>
@@ -539,6 +584,18 @@
      data-i18n="footer.kofi"></a>
 </footer>
 
+<div id="modalOverlay" onclick="if(event.target===this) closeModal(false)">
+  <div id="modalDialog">
+    <div id="modalIcon">⚠️</div>
+    <div id="modalTitle" data-i18n="modal.title"></div>
+    <div id="modalMsg"></div>
+    <div class="modal-btns">
+      <button class="modal-btn-cancel" id="modalCancel" onclick="closeModal(false)"></button>
+      <button class="modal-btn-ok"     id="modalOk"     onclick="closeModal(true)"></button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -580,7 +637,10 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversion terminée',
     'conv.stopped':      '⏹ Arrêté par l\'utilisateur',
     'conv.error':        '✗ Erreur : ',
-    'conv.confirm':      'Le résultat actuel sera remplacé. Continuer ?',
+    'conv.confirm':      'Une conversion est déjà affichée. Elle sera effacée avant de relancer.',
+    'modal.title':       'Nouvelle conversion',
+    'modal.cancel':      'Annuler',
+    'modal.ok':          'Continuer',
     'copied':            'Copié dans le presse-papier',
   },
   en: {
@@ -619,7 +679,10 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversion complete',
     'conv.stopped':      '⏹ Stopped by user',
     'conv.error':        '✗ Error: ',
-    'conv.confirm':      'The current result will be replaced. Continue?',
+    'conv.confirm':      'A conversion is already displayed. It will be cleared before restarting.',
+    'modal.title':       'New conversion',
+    'modal.cancel':      'Cancel',
+    'modal.ok':          'Continue',
     'copied':            'Copied to clipboard',
   },
   es: {
@@ -658,7 +721,10 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversión completada',
     'conv.stopped':      '⏹ Detenido por el usuario',
     'conv.error':        '✗ Error: ',
-    'conv.confirm':      'El resultado actual será reemplazado. ¿Continuar?',
+    'conv.confirm':      'Ya hay una conversión mostrada. Se borrará antes de reiniciar.',
+    'modal.title':       'Nueva conversión',
+    'modal.cancel':      'Cancelar',
+    'modal.ok':          'Continuar',
     'copied':            'Copiado al portapapeles',
   },
 };
@@ -765,6 +831,44 @@ function setFile(f) {
   document.getElementById('btnConvert').disabled = false;
 }
 
+// ─── Modal ───────────────────────────────────────────────────────────────────
+let _modalResolve = null;
+
+function showModal(msg) {
+  return new Promise(resolve => {
+    _modalResolve = resolve;
+    document.getElementById('modalMsg').textContent = msg;
+    document.getElementById('modalCancel').textContent = t('modal.cancel');
+    document.getElementById('modalOk').textContent = t('modal.ok');
+    document.getElementById('modalOverlay').classList.add('visible');
+    document.getElementById('modalOk').focus();
+  });
+}
+
+function closeModal(result) {
+  document.getElementById('modalOverlay').classList.remove('visible');
+  if (_modalResolve) { _modalResolve(result); _modalResolve = null; }
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('modalOverlay').classList.contains('visible')) return;
+  if (e.key === 'Escape') closeModal(false);
+  if (e.key === 'Enter')  closeModal(true);
+});
+
+// ─── Clear panneau droit ─────────────────────────────────────────────────────
+function clearRightPanel() {
+  currentMd = ''; chunksData = [];
+  document.getElementById('previewEmpty').style.display = '';
+  document.getElementById('previewRaw').style.display = 'none';
+  document.getElementById('previewRendered').style.display = 'none';
+  document.getElementById('previewChunks').style.display = 'none';
+  document.getElementById('statsPanel').classList.remove('active');
+  document.getElementById('tabChunks').style.display = 'none';
+  document.getElementById('btnDl').style.display = 'none';
+  document.getElementById('footerPath').textContent = '';
+}
+
 // ─── Reset ───────────────────────────────────────────────────────────────────
 function resetUI() {
   if (abortController) { abortController.abort(); abortController = null; }
@@ -799,7 +903,11 @@ function stopConvert() {
 // ─── Conversion ──────────────────────────────────────────────────────────────
 async function startConvert() {
   if (!currentFilename) return;
-  if (currentMd && !confirm(t('conv.confirm'))) return;
+  if (currentMd) {
+    const ok = await showModal(t('conv.confirm'));
+    if (!ok) return;
+    clearRightPanel();
+  }
   const btn = document.getElementById('btnConvert');
   const btnStop = document.getElementById('btnStop');
   btn.disabled = true;
