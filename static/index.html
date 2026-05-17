@@ -227,6 +227,26 @@
   }
   .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
 
+  .mode-selector { display: flex; gap: 8px; }
+  .mode-btn {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .2s, color .2s, background .2s;
+    user-select: none;
+  }
+  .mode-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(108,142,247,.08);
+  }
+
   /* Progress */
   .progress {
     display: none;
@@ -432,6 +452,13 @@
       <h2>Options</h2>
       <div class="opts">
         <div class="field">
+          <label>Mode d'extraction</label>
+          <div class="mode-selector">
+            <div class="mode-btn selected" id="modeDetailed" onclick="setMode('detailed')">✦ Synthèses détaillées</div>
+            <div class="mode-btn" id="modeRaw" onclick="setMode('raw')">≡ Brute structurée</div>
+          </div>
+        </div>
+        <div class="field" id="modelField">
           <label>Modèle Ollama</label>
           <select id="optModel">
             <option value="">Modèle par défaut (défini dans config.yaml)</option>
@@ -440,6 +467,7 @@
             <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
             <option value="mistral:7b-instruct-q4_K_M">mistral q4 (léger)</option>
           </select>
+        </div>
         </div>
         <div class="field">
           <label>Langue du document</label>
@@ -535,6 +563,14 @@ let chunksData = [];
 let timerInterval = null;
 let abortController = null;
 let lastModelUsed = null;
+let currentMode = 'detailed';
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('modeDetailed').classList.toggle('selected', mode === 'detailed');
+  document.getElementById('modeRaw').classList.toggle('selected', mode === 'raw');
+  document.getElementById('modelField').style.display = mode === 'raw' ? 'none' : '';
+}
 
 function startTimer(estimateSec = 60) {
   const elapsedEl = document.getElementById('timerElapsed');
@@ -680,15 +716,21 @@ async function startConvert() {
   progress.classList.add('active');
   fill.className = 'progress-bar-fill';
   document.getElementById('timerRemaining').style.color = 'var(--warn)';
-  const modelEstimates = {
-    '':                              60,
-    'qwen2.5:7b':                    60,
-    'llama3.2:3b':                   30,
-    'mistral:7b':                   120,
-    'mistral:7b-instruct-q4_K_M':   90,
-  };
-  const selectedModel = document.getElementById('optModel').value;
-  startTimer(modelEstimates[selectedModel] ?? 90);
+  if (currentMode === 'raw') {
+    document.getElementById('progressTimer').style.display = 'flex';
+    document.getElementById('timerElapsed').textContent = '⏱ instantané';
+    document.getElementById('timerRemaining').textContent = '';
+  } else {
+    const modelEstimates = {
+      '':                              60,
+      'qwen2.5:7b':                    60,
+      'llama3.2:3b':                   30,
+      'mistral:7b':                   120,
+      'mistral:7b-instruct-q4_K_M':   90,
+    };
+    const selectedModel = document.getElementById('optModel').value;
+    startTimer(modelEstimates[selectedModel] ?? 90);
+  }
 
   let stepIdx = 0;
   const stepInterval = setInterval(() => {
@@ -706,6 +748,7 @@ async function startConvert() {
     formData.append('language', document.getElementById('optLang').value);
     formData.append('max_tags', document.getElementById('optTags').value);
     formData.append('add_chunks', document.getElementById('toggleChunks').classList.contains('on') ? 'true' : 'false');
+    formData.append('mode', currentMode);
 
     stepEl.textContent = steps[0];
     abortController = new AbortController();
