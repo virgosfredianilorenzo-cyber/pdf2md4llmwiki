@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from extractor import extract
-from llm_client import check_ollama_running, chunk_for_rag, format_raw, structure_document
+from llm_client import check_ollama_running, chunk_for_rag, format_raw, list_models, structure_document
 from formatter import process_markdown, save_markdown
 
 
@@ -48,6 +48,7 @@ async def status():
     return {
         "ollama": ok,
         "models": info,
+        "model_list": list_models(),
         "current_model": CONFIG.get("model"),
         "output_dir": CONFIG.get("output_dir"),
         "vault_path": CONFIG.get("vault_path"),

@@ -502,11 +502,7 @@
           <div class="field">
             <label data-i18n="opt.model"></label>
             <select id="optModel" onchange="lastModelUsed=null; updateBadge()">
-              <option value="" data-i18n="opt.model.default"></option>
-              <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
-              <option value="mistral:7b">mistral:7b</option>
-              <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
-              <option value="mistral:7b-instruct-q4_K_M">mistral q4 (léger)</option>
+              <option value="" data-i18n="opt.model.loading"></option>
             </select>
           </div>
           <div class="field">
@@ -613,7 +609,9 @@ const TRANSLATIONS = {
     'mode.detailed':     '✦ Synthèses détaillées',
     'mode.raw':          '≡ Brute structurée',
     'opt.model':         'Modèle Ollama',
-    'opt.model.default': 'Modèle par défaut (défini dans config.yaml)',
+    'opt.model.default': 'Modèle par défaut (config.yaml)',
+    'opt.model.loading': 'Chargement des modèles…',
+    'opt.model.none':    'Aucun modèle installé',
     'opt.lang':          'Langue du document',
     'opt.tags':          'Nombre de tags max',
     'opt.chunks':        'Chunks RAG',
@@ -655,7 +653,9 @@ const TRANSLATIONS = {
     'mode.detailed':     '✦ Detailed syntheses',
     'mode.raw':          '≡ Raw structured',
     'opt.model':         'Ollama model',
-    'opt.model.default': 'Default model (set in config.yaml)',
+    'opt.model.default': 'Default model (config.yaml)',
+    'opt.model.loading': 'Loading models…',
+    'opt.model.none':    'No model installed',
     'opt.lang':          'Document language',
     'opt.tags':          'Max tags count',
     'opt.chunks':        'RAG chunks',
@@ -697,7 +697,9 @@ const TRANSLATIONS = {
     'mode.detailed':     '✦ Síntesis detalladas',
     'mode.raw':          '≡ Bruta estructurada',
     'opt.model':         'Modelo Ollama',
-    'opt.model.default': 'Modelo por defecto (definido en config.yaml)',
+    'opt.model.default': 'Modelo por defecto (config.yaml)',
+    'opt.model.loading': 'Cargando modelos…',
+    'opt.model.none':    'Ningún modelo instalado',
     'opt.lang':          'Idioma del documento',
     'opt.tags':          'Nº máximo de etiquetas',
     'opt.chunks':        'Chunks RAG',
@@ -789,6 +791,30 @@ function setMode(mode) {
   updateBadge();
 }
 
+// ─── Modèles installés ───────────────────────────────────────────────────────
+function populateModelSelect(modelList, currentModel) {
+  const sel = document.getElementById('optModel');
+  const prev = sel.value;
+  sel.innerHTML = '';
+
+  const defOpt = document.createElement('option');
+  defOpt.value = '';
+  defOpt.textContent = modelList.length
+    ? t('opt.model.default')
+    : t('opt.model.none');
+  sel.appendChild(defOpt);
+
+  modelList.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name === currentModel ? name + ' ★' : name;
+    sel.appendChild(opt);
+  });
+
+  if (modelList.includes(prev)) sel.value = prev;
+  updateBadge();
+}
+
 // ─── Status Ollama ───────────────────────────────────────────────────────────
 async function checkStatus() {
   try {
@@ -800,9 +826,11 @@ async function checkStatus() {
       dot.className = 'status-dot ok';
       label.textContent = t('status.active') + d.models;
       configModel = d.current_model || '—';
+      populateModelSelect(d.model_list || [], d.current_model);
     } else {
       dot.className = 'status-dot err';
       label.textContent = t('status.notfound');
+      populateModelSelect([], null);
     }
     updateBadge();
   } catch(e) {

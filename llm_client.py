@@ -111,6 +111,15 @@ def check_ollama_running() -> tuple[bool, str]:
         return False, str(e)
 
 
+def list_models() -> list[str]:
+    """Retourne la liste des modèles installés dans Ollama."""
+    try:
+        result = ollama.list()
+        return [m.model for m in result.models]
+    except Exception:
+        return []
+
+
 def structure_document(
     pdf_doc: PDFDocument,
     model: str,
