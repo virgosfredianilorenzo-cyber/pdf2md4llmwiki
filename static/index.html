@@ -222,6 +222,16 @@
   .progress-bar-fill.done { animation: none; width: 100%; background: var(--success); }
   .progress-step { font-size: 12px; color: var(--muted); }
 
+  .progress-timer {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+  .timer-elapsed { color: var(--muted); }
+  .timer-remaining { color: var(--warn); }
+
   /* Stats */
   .stats {
     display: none;
@@ -427,6 +437,10 @@
         <div class="progress-bar-fill" id="progressFill"></div>
       </div>
       <div class="progress-step" id="progressStep">Extraction du texte…</div>
+      <div class="progress-timer" id="progressTimer" style="display:none">
+        <span class="timer-elapsed" id="timerElapsed">⏱ 0s</span>
+        <span class="timer-remaining" id="timerRemaining">~60s restantes</span>
+      </div>
     </div>
 
     <div class="stats" id="statsPanel">
@@ -471,6 +485,37 @@ let currentMd = '';
 let currentFilename = '';
 let currentTab = 'raw';
 let chunksData = [];
+let timerInterval = null;
+
+function startTimer(estimateSec = 60) {
+  const elapsedEl = document.getElementById('timerElapsed');
+  const remainingEl = document.getElementById('timerRemaining');
+  const timerEl = document.getElementById('progressTimer');
+  timerEl.style.display = 'flex';
+
+  let elapsed = 0;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    elapsed++;
+    const e = elapsed < 60 ? elapsed + 's' : Math.floor(elapsed/60) + 'm' + (elapsed%60).toString().padStart(2,'0') + 's';
+    elapsedEl.textContent = '⏱ ' + e;
+
+    const rem = estimateSec - elapsed;
+    if (rem > 0) {
+      remainingEl.textContent = '~' + rem + 's restantes';
+    } else {
+      remainingEl.textContent = 'encore quelques instants…';
+    }
+  }, 1000);
+}
+
+function stopTimer(success = true) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  const remainingEl = document.getElementById('timerRemaining');
+  remainingEl.textContent = success ? '✓ terminé' : '✗ arrêté';
+  remainingEl.style.color = success ? 'var(--success)' : 'var(--danger)';
+}
 
 // --- Status Ollama ---
 async function checkStatus() {
@@ -537,6 +582,8 @@ async function startConvert() {
   const stepEl = document.getElementById('progressStep');
   progress.classList.add('active');
   fill.className = 'progress-bar-fill';
+  document.getElementById('timerRemaining').style.color = 'var(--warn)';
+  startTimer(60);
 
   let stepIdx = 0;
   const stepInterval = setInterval(() => {
@@ -570,6 +617,7 @@ async function startConvert() {
 
     fill.className = 'progress-bar-fill done';
     stepEl.textContent = '✓ Conversion terminée';
+    stopTimer(true);
 
     // Stats
     const stats = data.stats;
@@ -598,6 +646,7 @@ async function startConvert() {
     clearInterval(stepInterval);
     fill.style.background = 'var(--danger)';
     stepEl.textContent = '✗ Erreur : ' + e.message;
+    stopTimer(false);
     showToast(e.message, 'error');
   }
 
