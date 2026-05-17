@@ -505,6 +505,42 @@
               <option value="" data-i18n="opt.model.loading"></option>
             </select>
           </div>
+          <div style="text-align:right; margin-top:-2px;">
+            <a href="#" id="installToggle" onclick="toggleInstall();return false"
+               style="font-size:11px;color:var(--muted);text-decoration:none;transition:color .15s;"
+               onmouseover="this.style.color='var(--accent)'"
+               onmouseout="this.style.color='var(--muted)'"
+               data-i18n="install.toggle"></a>
+          </div>
+          <div id="installSection" style="display:none;flex-direction:column;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;">
+            <div style="font-size:11px;color:var(--warn);" data-i18n="install.warn"></div>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="installInput" list="modelSuggestions"
+                     style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;"
+                     onfocus="this.style.borderColor='var(--accent)'"
+                     onblur="this.style.borderColor='var(--border)'"
+                     data-i18n-placeholder="install.placeholder">
+              <datalist id="modelSuggestions">
+                <option value="qwen2.5:7b"></option>
+                <option value="mistral:7b"></option>
+                <option value="llama3.2:3b"></option>
+                <option value="mistral:7b-instruct-q4_K_M"></option>
+                <option value="gemma3:4b"></option>
+                <option value="phi4-mini:3.8b"></option>
+              </datalist>
+              <button id="installBtn" onclick="installModel()"
+                      style="padding:6px 12px;background:var(--accent);border:none;border-radius:6px;color:white;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;"
+                      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"
+                      data-i18n="install.btn"></button>
+            </div>
+            <div id="installProgress" style="display:none;">
+              <div class="progress-bar-track" style="margin-bottom:6px;">
+                <div id="installFill" style="height:4px;background:var(--accent);border-radius:2px;width:0%;transition:width .3s;"></div>
+              </div>
+              <div id="installStatus" style="font-size:11px;color:var(--muted);font-family:var(--mono);"></div>
+            </div>
+          </div>
+
           <div class="field">
             <label data-i18n="opt.lang"></label>
             <select id="optLang">
@@ -612,6 +648,14 @@ const TRANSLATIONS = {
     'opt.model.default': 'Modèle par défaut (config.yaml)',
     'opt.model.loading': 'Chargement des modèles…',
     'opt.model.none':    'Aucun modèle installé',
+    'install.toggle':    '⊕ Installer un modèle',
+    'install.hide':      '✕ Fermer',
+    'install.placeholder':'ex : qwen2.5:7b',
+    'install.btn':       '⬇ Télécharger',
+    'install.warn':      'Le téléchargement peut prendre plusieurs minutes selon votre connexion.',
+    'install.downloading':'Téléchargement en cours…',
+    'install.done':      '✓ Modèle installé avec succès',
+    'install.error':     '✗ Erreur : ',
     'opt.lang':          'Langue du document',
     'opt.tags':          'Nombre de tags max',
     'opt.chunks':        'Chunks RAG',
@@ -656,6 +700,14 @@ const TRANSLATIONS = {
     'opt.model.default': 'Default model (config.yaml)',
     'opt.model.loading': 'Loading models…',
     'opt.model.none':    'No model installed',
+    'install.toggle':    '⊕ Install a model',
+    'install.hide':      '✕ Close',
+    'install.placeholder':'e.g. qwen2.5:7b',
+    'install.btn':       '⬇ Download',
+    'install.warn':      'Download may take several minutes depending on your connection.',
+    'install.downloading':'Downloading…',
+    'install.done':      '✓ Model installed successfully',
+    'install.error':     '✗ Error: ',
     'opt.lang':          'Document language',
     'opt.tags':          'Max tags count',
     'opt.chunks':        'RAG chunks',
@@ -700,6 +752,14 @@ const TRANSLATIONS = {
     'opt.model.default': 'Modelo por defecto (config.yaml)',
     'opt.model.loading': 'Cargando modelos…',
     'opt.model.none':    'Ningún modelo instalado',
+    'install.toggle':    '⊕ Instalar un modelo',
+    'install.hide':      '✕ Cerrar',
+    'install.placeholder':'ej: qwen2.5:7b',
+    'install.btn':       '⬇ Descargar',
+    'install.warn':      'La descarga puede tardar varios minutos según tu conexión.',
+    'install.downloading':'Descargando…',
+    'install.done':      '✓ Modelo instalado correctamente',
+    'install.error':     '✗ Error: ',
     'opt.lang':          'Idioma del documento',
     'opt.tags':          'Nº máximo de etiquetas',
     'opt.chunks':        'Chunks RAG',
@@ -747,6 +807,9 @@ function applyLang() {
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
     el.innerHTML = t(el.dataset.i18nHtml);
   });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
   ['langFr','langEn','langEs'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1)).classList.add('active');
   // Status label si pas connecté encore
@@ -789,6 +852,72 @@ function setMode(mode) {
   document.getElementById('modeRaw').classList.toggle('selected', mode === 'raw');
   document.getElementById('llmOptions').style.display = mode === 'raw' ? 'none' : '';
   updateBadge();
+}
+
+// ─── Installation modèle ─────────────────────────────────────────────────────
+function toggleInstall() {
+  const sec = document.getElementById('installSection');
+  const lnk = document.getElementById('installToggle');
+  const open = sec.style.display === 'flex';
+  sec.style.display = open ? 'none' : 'flex';
+  lnk.textContent = open ? t('install.toggle') : t('install.hide');
+}
+
+async function installModel() {
+  const name = document.getElementById('installInput').value.trim();
+  if (!name) return;
+
+  const btn    = document.getElementById('installBtn');
+  const prog   = document.getElementById('installProgress');
+  const fill   = document.getElementById('installFill');
+  const status = document.getElementById('installStatus');
+
+  btn.disabled = true;
+  prog.style.display = 'block';
+  fill.style.width = '0%';
+  fill.style.background = 'var(--accent)';
+  status.style.color = 'var(--muted)';
+  status.textContent = t('install.downloading');
+
+  try {
+    const body = new URLSearchParams({ model: name });
+    const res  = await fetch('/api/pull', { method: 'POST', body });
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const d = JSON.parse(line.slice(6));
+        if (d.error) {
+          status.textContent = t('install.error') + d.error;
+          status.style.color = 'var(--danger)';
+          fill.style.background = 'var(--danger)';
+          break;
+        }
+        if (d.done) {
+          fill.style.width = '100%';
+          fill.style.background = 'var(--success)';
+          status.textContent = t('install.done');
+          status.style.color = 'var(--success)';
+          await checkStatus();
+          const sel  = document.getElementById('optModel');
+          const opts = Array.from(sel.options);
+          const hit  = opts.find(o => o.value === name || o.value.startsWith(name.split(':')[0]));
+          if (hit) { sel.value = hit.value; lastModelUsed = null; updateBadge(); }
+          break;
+        }
+        if (d.status) status.textContent = d.status;
+        if (d.percent !== undefined) fill.style.width = d.percent + '%';
+      }
+    }
+  } catch (e) {
+    status.textContent = t('install.error') + e.message;
+    status.style.color = 'var(--danger)';
+  }
+  btn.disabled = false;
 }
 
 // ─── Modèles installés ───────────────────────────────────────────────────────

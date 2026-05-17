@@ -164,6 +164,17 @@ def structure_document(
     return raw
 
 
+def pull_model_stream(model: str):
+    """Génère des dicts de progression pour ollama.pull(stream=True)."""
+    for progress in ollama.pull(model, stream=True):
+        d: dict = {"status": getattr(progress, "status", "")}
+        total = getattr(progress, "total", 0) or 0
+        completed = getattr(progress, "completed", 0) or 0
+        if total > 0:
+            d["percent"] = round(completed / total * 100)
+        yield d
+
+
 def chunk_for_rag(markdown_text: str, chunk_size: int = 400) -> list[dict]:
     """
     Découpe le Markdown en chunks RAG-ready.

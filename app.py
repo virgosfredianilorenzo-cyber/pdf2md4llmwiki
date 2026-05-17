@@ -7,15 +7,16 @@ from __future__ import annotations
 import asyncio
 import json
 import tempfile
+import threading
 from pathlib import Path
 import yaml
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from extractor import extract
-from llm_client import check_ollama_running, chunk_for_rag, format_raw, list_models, structure_document
+from llm_client import check_ollama_running, chunk_for_rag, format_raw, list_models, pull_model_stream, structure_document
 from formatter import process_markdown, save_markdown
 
 
@@ -155,6 +156,33 @@ async def convert(
 
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+@app.post("/api/pull")
+async def pull_model(model: str = Form(...)):
+    """Télécharge un modèle Ollama et streame la progression (SSE)."""
+    loop = asyncio.get_event_loop()
+
+    async def _generate():
+        q: asyncio.Queue = asyncio.Queue()
+
+        def _run():
+            try:
+                for d in pull_model_stream(model):
+                    asyncio.run_coroutine_threadsafe(q.put(d), loop)
+                asyncio.run_coroutine_threadsafe(q.put({"done": True}), loop)
+            except Exception as exc:
+                asyncio.run_coroutine_threadsafe(q.put({"error": str(exc)}), loop)
+
+        threading.Thread(target=_run, daemon=True).start()
+
+        while True:
+            item = await q.get()
+            yield f"data: {json.dumps(item)}\n\n"
+            if item.get("done") or item.get("error"):
+                break
+
+    return StreamingResponse(_generate(), media_type="text/event-stream")
 
 
 @app.get("/api/download/{filename}")
