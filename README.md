@@ -89,7 +89,7 @@ port: 8000
 
 Si cet outil t'est utile, tu peux soutenir son développement sur Ko-fi :
 
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
+<a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Ko-fi"></a>
 
 ---
 
