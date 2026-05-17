@@ -247,6 +247,8 @@
     background: rgba(108,142,247,.08);
   }
 
+  #llmOptions { display: flex; flex-direction: column; gap: 10px; }
+
   /* Progress */
   .progress {
     display: none;
@@ -458,32 +460,33 @@
             <div class="mode-btn" id="modeRaw" onclick="setMode('raw')">≡ Brute structurée</div>
           </div>
         </div>
-        <div class="field" id="modelField">
-          <label>Modèle Ollama</label>
-          <select id="optModel">
-            <option value="">Modèle par défaut (défini dans config.yaml)</option>
-            <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
-            <option value="mistral:7b">mistral:7b</option>
-            <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
-            <option value="mistral:7b-instruct-q4_K_M">mistral q4 (léger)</option>
-          </select>
-        </div>
-        </div>
-        <div class="field">
-          <label>Langue du document</label>
-          <select id="optLang">
-            <option value="fr">Français</option>
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Nombre de tags max</label>
-          <input type="number" id="optTags" value="8" min="3" max="20">
+        <div id="llmOptions">
+          <div class="field">
+            <label>Modèle Ollama</label>
+            <select id="optModel">
+              <option value="">Modèle par défaut (défini dans config.yaml)</option>
+              <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
+              <option value="mistral:7b">mistral:7b</option>
+              <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
+              <option value="mistral:7b-instruct-q4_K_M">mistral q4 (léger)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Langue du document</label>
+            <select id="optLang">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Nombre de tags max</label>
+            <input type="number" id="optTags" value="8" min="3" max="20">
+          </div>
         </div>
         <div class="toggle-row">
-          <span>Générer les chunks RAG</span>
+          <span>Chunks RAG</span>
           <div class="toggle" id="toggleChunks" onclick="this.classList.toggle('on')"></div>
         </div>
       </div>
@@ -493,12 +496,12 @@
       <button class="btn-convert" id="btnConvert" onclick="startConvert()" disabled>
         Convertir en Markdown
       </button>
-      <button class="btn-stop" id="btnStop" onclick="stopConvert()" style="margin-top:8px">
+      <button class="btn-stop" id="btnStop" onclick="stopConvert()" style="margin-top:8px; display:none">
         ✕ Arrêter
       </button>
       <div class="btn-row">
-        <button class="btn-sm" onclick="resetUI()" title="Réinitialiser l'interface">↺ Nouvelle conv.</button>
-        <button class="btn-sm" onclick="location.reload()" title="Recharger la page et reconnecter au serveur">⟳ Recharger</button>
+        <button class="btn-sm" onclick="resetUI()">↺ Nouveau</button>
+        <button class="btn-sm" onclick="location.reload()">⟳ Recharger</button>
       </div>
     </div>
 
@@ -569,7 +572,7 @@ function setMode(mode) {
   currentMode = mode;
   document.getElementById('modeDetailed').classList.toggle('selected', mode === 'detailed');
   document.getElementById('modeRaw').classList.toggle('selected', mode === 'raw');
-  document.getElementById('modelField').style.display = mode === 'raw' ? 'none' : '';
+  document.getElementById('llmOptions').style.display = mode === 'raw' ? 'none' : '';
 }
 
 function startTimer(estimateSec = 60) {
