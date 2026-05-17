@@ -46,6 +46,36 @@ Commence directement par ---
 """
 
 
+def format_raw(pdf_doc: PDFDocument, pdf_filename: str) -> str:
+    """
+    Formate les sections extraites en Markdown sans appel LLM.
+    Génère un frontmatter minimal et préserve la structure H1/H2/H3.
+    """
+    from datetime import date
+    lines: list[str] = []
+
+    lines.append("---")
+    lines.append(f"title: {pdf_doc.title}")
+    lines.append(f"source: {pdf_filename}")
+    lines.append(f"date_extraction: {date.today().isoformat()}")
+    lines.append(f"pages: {pdf_doc.pages}")
+    lines.append("tags: []")
+    lines.append("mode: brute")
+    lines.append("---")
+    lines.append("")
+
+    prefix_map = {1: "# ", 2: "## ", 3: "### ", 0: ""}
+    for section in pdf_doc.sections:
+        if section.is_table:
+            lines.append(section.text)
+        else:
+            prefix = prefix_map.get(section.level, "")
+            lines.append(prefix + section.text)
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def check_ollama_running() -> tuple[bool, str]:
     """Vérifie qu'Ollama est accessible et liste les modèles."""
     try:
