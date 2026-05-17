@@ -41,6 +41,8 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 
 - Trilingüe FR / EN / ES (botones de bandera, persistencia localStorage)
 - Indicador de modelo en tiempo real: se actualiza al instante al cambiar de modelo o de modo
+- Descarga de modelos Ollama desde la interfaz con barra de progreso en tiempo real
+- Lista de modelos dinámica (solo muestra los modelos instalados)
 - Botón Stop funcional: cancela la conversión en el servidor al detectar la desconexión del cliente
 - Modal de confirmación animado antes de sobrescribir un resultado (fondo difuminado, Esc/Enter, clic exterior)
 - Vista previa Markdown renderizada o en fuente, descarga directa

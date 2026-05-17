@@ -59,6 +59,8 @@ output/note.md         →  copie optionnelle dans le vault
 
 - Trilingue FR / EN / ES (boutons drapeau, persistance localStorage)
 - Badge modèle en temps réel : se met à jour instantanément au changement de modèle ou de mode
+- Téléchargement de modèles Ollama depuis l'interface, avec barre de progression en temps réel
+- Dropdown modèles peuplé dynamiquement (uniquement les modèles installés)
 - Bouton Stop fonctionnel : annule la conversion côté serveur dès la déconnexion du client
 - Modal de confirmation animé avant d'écraser un résultat (fond flouté, Échap/Entrée, clic extérieur)
 - Aperçu Markdown rendu ou source, téléchargement direct

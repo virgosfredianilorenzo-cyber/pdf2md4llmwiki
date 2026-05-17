@@ -41,6 +41,8 @@ Subsequent launches take 2-3 seconds.
 
 - Trilingual FR / EN / ES (flag buttons, localStorage persistence)
 - Live model badge: updates instantly when changing model or extraction mode
+- Download Ollama models directly from the UI with a real-time progress bar
+- Model dropdown populated dynamically (only installed models shown)
 - Functional Stop button: cancels conversion server-side on client disconnect
 - Animated confirmation modal before overwriting a result (blurred backdrop, Esc/Enter, click-outside)
 - Rendered or source Markdown preview, direct download
