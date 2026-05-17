@@ -42,6 +42,7 @@ Subsequent launches take 2-3 seconds.
 - Trilingual FR / EN / ES (flag buttons, localStorage persistence)
 - Live model badge: updates instantly when changing model or extraction mode
 - Functional Stop button: cancels conversion server-side on client disconnect
+- Confirmation dialog before overwriting an existing result (translated FR/EN/ES)
 - Rendered or source Markdown preview, direct download
 
 ---
