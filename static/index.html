@@ -192,6 +192,22 @@
   .btn-convert:active:not(:disabled) { transform: scale(.99); }
   .btn-convert:disabled { opacity: .4; cursor: not-allowed; }
 
+  .btn-stop {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+    letter-spacing: .02em;
+    display: none;
+  }
+  .btn-stop:hover { background: rgba(247,108,108,.1); }
+
   /* Progress */
   .progress {
     display: none;
@@ -430,6 +446,9 @@
       <button class="btn-convert" id="btnConvert" onclick="startConvert()" disabled>
         Convertir en Markdown
       </button>
+      <button class="btn-stop" id="btnStop" onclick="stopConvert()" style="margin-top:8px">
+        ✕ Arrêter
+      </button>
     </div>
 
     <div class="progress" id="progressBar">
@@ -491,6 +510,7 @@ let currentFilename = '';
 let currentTab = 'raw';
 let chunksData = [];
 let timerInterval = null;
+let abortController = null;
 
 function startTimer(estimateSec = 60) {
   const elapsedEl = document.getElementById('timerElapsed');
@@ -568,11 +588,20 @@ function setFile(f) {
   document.getElementById('btnConvert').disabled = false;
 }
 
+function stopConvert() {
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+}
+
 // --- Conversion ---
 async function startConvert() {
   if (!currentFilename) return;
   const btn = document.getElementById('btnConvert');
+  const btnStop = document.getElementById('btnStop');
   btn.disabled = true;
+  btnStop.style.display = 'block';
 
   const steps = [
     'Extraction du texte PDF…',
@@ -608,12 +637,14 @@ async function startConvert() {
     formData.append('add_chunks', document.getElementById('toggleChunks').classList.contains('on') ? 'true' : 'false');
 
     stepEl.textContent = steps[0];
-    const r = await fetch('/api/convert', { method: 'POST', body: formData });
+    abortController = new AbortController();
+    const r = await fetch('/api/convert', { method: 'POST', body: formData, signal: abortController.signal });
     clearInterval(stepInterval);
 
     if (!r.ok) {
-      const err = await r.json();
-      throw new Error(err.detail || 'Erreur serveur');
+      let detail = 'Erreur serveur ' + r.status;
+      try { const err = await r.json(); detail = err.detail || detail; } catch {}
+      throw new Error(detail);
     }
 
     const data = await r.json();
@@ -623,6 +654,8 @@ async function startConvert() {
     fill.className = 'progress-bar-fill done';
     stepEl.textContent = '✓ Conversion terminée';
     stopTimer(true);
+    abortController = null;
+    document.getElementById('btnStop').style.display = 'none';
 
     // Stats
     const stats = data.stats;
@@ -649,10 +682,13 @@ async function startConvert() {
 
   } catch(e) {
     clearInterval(stepInterval);
-    fill.style.background = 'var(--danger)';
-    stepEl.textContent = '✗ Erreur : ' + e.message;
+    const aborted = e.name === 'AbortError';
+    fill.style.background = aborted ? 'var(--warn)' : 'var(--danger)';
+    stepEl.textContent = aborted ? '⏹ Arrêté par l\'utilisateur' : '✗ Erreur : ' + e.message;
     stopTimer(false);
-    showToast(e.message, 'error');
+    if (!aborted) showToast(e.message, 'error');
+    abortController = null;
+    document.getElementById('btnStop').style.display = 'none';
   }
 
   setTimeout(() => btn.disabled = false, 1000);
