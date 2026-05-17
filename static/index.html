@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF2LLMWiki</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --bg2: #1a1d27;
+    --bg3: #22263a;
+    --border: #2e3450;
+    --accent: #6c8ef7;
+    --accent2: #4ecdc4;
+    --text: #e8eaf0;
+    --muted: #7880a0;
+    --success: #4ecdc4;
+    --warn: #f7c948;
+    --danger: #f76c6c;
+    --mono: 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+  header h1 span { color: var(--accent); }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted); flex-shrink: 0;
+    transition: background .3s;
+  }
+  .status-dot.ok { background: var(--success); }
+  .status-dot.err { background: var(--danger); }
+
+  .status-label { font-size: 12px; color: var(--muted); }
+
+  .model-badge {
+    margin-left: auto;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    overflow: hidden;
+    height: calc(100vh - 52px - 36px);
+  }
+
+  /* Panneau gauche */
+  .panel-left {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Drop zone */
+  .dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--accent);
+    background: rgba(108,142,247,.06);
+  }
+  .dropzone.has-file { border-color: var(--success); border-style: solid; }
+  .dropzone input { display: none; }
+
+  .drop-icon { font-size: 32px; margin-bottom: 8px; opacity: .6; }
+  .drop-label { font-size: 13px; color: var(--muted); }
+  .drop-label strong { color: var(--text); }
+  .file-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--success);
+    margin-top: 8px;
+    word-break: break-all;
+  }
+
+  /* Options */
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .field select, .field input[type="number"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field select:focus, .field input:focus { border-color: var(--accent); }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .toggle {
+    width: 36px; height: 20px;
+    background: var(--border);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left .2s;
+  }
+  .toggle.on::after { left: 19px; }
+
+  /* Bouton convert */
+  .btn-convert {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .1s;
+    letter-spacing: .02em;
+  }
+  .btn-convert:hover:not(:disabled) { opacity: .9; }
+  .btn-convert:active:not(:disabled) { transform: scale(.99); }
+  .btn-convert:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* Progress */
+  .progress {
+    display: none;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress.active { display: block; }
+  .progress-bar-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width .4s ease;
+    animation: indeterminate 1.5s infinite;
+  }
+  @keyframes indeterminate {
+    0% { width: 10%; margin-left: 0; }
+    50% { width: 40%; margin-left: 30%; }
+    100% { width: 10%; margin-left: 90%; }
+  }
+  .progress-bar-fill.done { animation: none; width: 100%; background: var(--success); }
+  .progress-step { font-size: 12px; color: var(--muted); }
+
+  /* Stats */
+  .stats {
+    display: none;
+    padding: 14px 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats.active { display: flex; }
+  .stat-item { display: flex; flex-direction: column; }
+  .stat-val { font-size: 18px; font-weight: 700; color: var(--accent2); font-variant-numeric: tabular-nums; }
+  .stat-key { font-size: 11px; color: var(--muted); }
+
+  /* Panneau droit : Markdown */
+  .panel-right {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .preview-toolbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tab-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px 12px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tab-btn.active {
+    border-color: var(--border);
+    color: var(--text);
+    background: var(--bg3);
+  }
+
+  .btn-copy, .btn-dl {
+    margin-left: auto;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .btn-copy:hover, .btn-dl:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-dl { margin-left: 6px; }
+
+  .preview-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  .preview-content.rendered {
+    font-family: system-ui, sans-serif;
+    font-size: 14px;
+    white-space: normal;
+  }
+
+  .preview-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    color: var(--muted);
+    font-size: 13px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .preview-empty .empty-icon { font-size: 40px; opacity: .3; }
+
+  /* MD rendu */
+  .md-rendered h1 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; color: var(--accent); }
+  .md-rendered h2 { font-size: 16px; font-weight: 600; margin: 16px 0 8px; color: var(--accent2); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .md-rendered h3 { font-size: 14px; font-weight: 600; margin: 12px 0 6px; }
+  .md-rendered p { margin: 8px 0; }
+  .md-rendered code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+  .md-rendered pre { background: var(--bg3); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 10px 0; }
+  .md-rendered pre code { background: none; padding: 0; }
+  .md-rendered table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 12px; }
+  .md-rendered th, .md-rendered td { border: 1px solid var(--border); padding: 6px 10px; }
+  .md-rendered th { background: var(--bg3); }
+  .md-rendered ul, .md-rendered ol { padding-left: 20px; margin: 8px 0; }
+  .md-rendered blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--muted); margin: 8px 0; }
+  .wikilink { color: var(--accent); font-weight: 500; }
+  .md-rendered .frontmatter { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 8px 28px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .toast {
+    position: fixed; bottom: 50px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all .2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: var(--success); color: var(--success); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="status-dot" id="statusDot"></div>
+  <h1>PDF<span>2</span>LLMWiki</h1>
+  <span class="status-label" id="statusLabel">vérification Ollama…</span>
+  <span class="model-badge" id="modelBadge">—</span>
+</header>
+
+<main>
+  <!-- Panneau gauche -->
+  <div class="panel-left">
+
+    <div class="panel-section">
+      <h2>Document PDF</h2>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".pdf">
+        <div class="drop-icon">📄</div>
+        <div class="drop-label"><strong>Glisse un PDF</strong> ou clique</div>
+        <div class="file-name" id="fileName"></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <h2>Options</h2>
+      <div class="opts">
+        <div class="field">
+          <label>Modèle Ollama</label>
+          <select id="optModel">
+            <option value="">— config.yaml —</option>
+            <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
+            <option value="mistral:7b">mistral:7b</option>
+            <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
+            <option value="mistral:7b-instruct-q4_K_M">mistral q4 (léger)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Langue du document</label>
+          <select id="optLang">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nombre de tags max</label>
+          <input type="number" id="optTags" value="8" min="3" max="20">
+        </div>
+        <div class="toggle-row">
+          <span>Générer les chunks RAG</span>
+          <div class="toggle" id="toggleChunks" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section" style="border-bottom:none; padding-top:16px;">
+      <button class="btn-convert" id="btnConvert" onclick="startConvert()" disabled>
+        Convertir en Markdown
+      </button>
+    </div>
+
+    <div class="progress" id="progressBar">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-step" id="progressStep">Extraction du texte…</div>
+    </div>
+
+    <div class="stats" id="statsPanel">
+      <div class="stat-item"><span class="stat-val" id="statPages">—</span><span class="stat-key">pages</span></div>
+      <div class="stat-item"><span class="stat-val" id="statSections">—</span><span class="stat-key">sections</span></div>
+      <div class="stat-item"><span class="stat-val" id="statChars">—</span><span class="stat-key">caractères</span></div>
+      <div class="stat-item"><span class="stat-val" id="statChunks">—</span><span class="stat-key">chunks RAG</span></div>
+    </div>
+
+  </div>
+
+  <!-- Panneau droit -->
+  <div class="panel-right">
+    <div class="preview-toolbar">
+      <button class="tab-btn active" id="tabRaw" onclick="setTab('raw')">Source MD</button>
+      <button class="tab-btn" id="tabRendered" onclick="setTab('rendered')">Aperçu rendu</button>
+      <button class="tab-btn" id="tabChunks" onclick="setTab('chunks')" style="display:none">Chunks RAG</button>
+      <button class="btn-copy" onclick="copyMd()">Copier</button>
+      <button class="btn-dl" id="btnDl" onclick="downloadMd()" style="display:none">↓ Télécharger</button>
+    </div>
+
+    <div id="previewEmpty" class="preview-empty">
+      <div class="empty-icon">🗂</div>
+      <span>Dépose un PDF et clique sur Convertir</span>
+    </div>
+
+    <div id="previewRaw" class="preview-content" style="display:none"></div>
+    <div id="previewRendered" class="preview-content rendered md-rendered" style="display:none"></div>
+    <div id="previewChunks" class="preview-content" style="display:none"></div>
+  </div>
+</main>
+
+<footer>
+  <span>PDF2LLMWiki · full local · aucun réseau externe</span>
+  <span id="footerPath" style="font-family:monospace"></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentMd = '';
+let currentFilename = '';
+let currentTab = 'raw';
+let chunksData = [];
+
+// --- Status Ollama ---
+async function checkStatus() {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    const dot = document.getElementById('statusDot');
+    const label = document.getElementById('statusLabel');
+    const badge = document.getElementById('modelBadge');
+    if (d.ollama) {
+      dot.className = 'status-dot ok';
+      label.textContent = 'Ollama actif · ' + d.models;
+      badge.textContent = d.current_model;
+    } else {
+      dot.className = 'status-dot err';
+      label.textContent = 'Ollama introuvable — lance: ollama serve';
+    }
+  } catch(e) {
+    document.getElementById('statusLabel').textContent = 'Serveur inaccessible';
+  }
+}
+checkStatus();
+setInterval(checkStatus, 15000);
+
+// --- Drag & drop ---
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.endsWith('.pdf')) setFile(f);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+function setFile(f) {
+  currentFilename = f.name;
+  document.getElementById('fileName').textContent = f.name;
+  dropzone.classList.add('has-file');
+  document.getElementById('btnConvert').disabled = false;
+}
+
+// --- Conversion ---
+async function startConvert() {
+  if (!currentFilename) return;
+  const btn = document.getElementById('btnConvert');
+  btn.disabled = true;
+
+  const steps = [
+    'Extraction du texte PDF…',
+    'Analyse de la structure…',
+    'Envoi au LLM local (peut prendre 30-90s)…',
+    'Post-traitement Markdown…',
+    'Sauvegarde…',
+  ];
+
+  const progress = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  const stepEl = document.getElementById('progressStep');
+  progress.classList.add('active');
+  fill.className = 'progress-bar-fill';
+
+  let stepIdx = 0;
+  const stepInterval = setInterval(() => {
+    if (stepIdx < steps.length - 1) {
+      stepIdx++;
+      stepEl.textContent = steps[stepIdx];
+    }
+  }, 4000);
+
+  try {
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0] || new Blob(), currentFilename);
+    const model = document.getElementById('optModel').value;
+    if (model) formData.append('model', model);
+    formData.append('language', document.getElementById('optLang').value);
+    formData.append('max_tags', document.getElementById('optTags').value);
+    formData.append('add_chunks', document.getElementById('toggleChunks').classList.contains('on') ? 'true' : 'false');
+
+    stepEl.textContent = steps[0];
+    const r = await fetch('/api/convert', { method: 'POST', body: formData });
+    clearInterval(stepInterval);
+
+    if (!r.ok) {
+      const err = await r.json();
+      throw new Error(err.detail || 'Erreur serveur');
+    }
+
+    const data = await r.json();
+    currentMd = data.markdown;
+    chunksData = data.chunks || [];
+
+    fill.className = 'progress-bar-fill done';
+    stepEl.textContent = '✓ Conversion terminée';
+
+    // Stats
+    const stats = data.stats;
+    document.getElementById('statPages').textContent = stats.pages;
+    document.getElementById('statSections').textContent = stats.sections_extracted;
+    document.getElementById('statChars').textContent = (stats.md_chars/1000).toFixed(1)+'k';
+    document.getElementById('statChunks').textContent = stats.chunks;
+    document.getElementById('statsPanel').classList.add('active');
+
+    // Affichage
+    document.getElementById('previewEmpty').style.display = 'none';
+    document.getElementById('previewRaw').style.display = 'block';
+    document.getElementById('previewRaw').textContent = currentMd;
+
+    if (chunksData.length > 0) {
+      document.getElementById('tabChunks').style.display = '';
+    }
+
+    document.getElementById('btnDl').style.display = '';
+    document.getElementById('footerPath').textContent = data.output_path;
+
+    setTab('raw');
+    showToast('✓ ' + data.filename, 'success');
+
+  } catch(e) {
+    clearInterval(stepInterval);
+    fill.style.background = 'var(--danger)';
+    stepEl.textContent = '✗ Erreur : ' + e.message;
+    showToast(e.message, 'error');
+  }
+
+  setTimeout(() => btn.disabled = false, 1000);
+}
+
+// --- Tabs ---
+function setTab(tab) {
+  currentTab = tab;
+  ['raw','rendered','chunks'].forEach(t => {
+    document.getElementById('preview'+capitalize(t)).style.display = 'none';
+    document.getElementById('tab'+capitalize(t))?.classList.remove('active');
+  });
+
+  if (tab === 'rendered') {
+    const el = document.getElementById('previewRendered');
+    el.style.display = 'block';
+    el.innerHTML = renderMd(currentMd);
+  } else if (tab === 'chunks') {
+    const el = document.getElementById('previewChunks');
+    el.style.display = 'block';
+    el.textContent = chunksData.map((c,i) =>
+      `--- Chunk ${i+1} [${c.section}] (${c.chars} chars) ---\n${c.content}`
+    ).join('\n\n');
+  } else {
+    document.getElementById('previewRaw').style.display = 'block';
+  }
+  document.getElementById('tab'+capitalize(tab))?.classList.add('active');
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// --- Rendu MD basique ---
+function renderMd(md) {
+  let html = '';
+  const lines = md.split('\n');
+  let inFrontmatter = false;
+  let fmLines = [];
+  let fmDone = false;
+  let inPre = false;
+  let preLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (i === 0 && l === '---') { inFrontmatter = true; continue; }
+    if (inFrontmatter) {
+      if (l === '---') { inFrontmatter = false; fmDone = true; html += '<div class="frontmatter">'+fmLines.join('\n')+'</div>'; }
+      else fmLines.push(l);
+      continue;
+    }
+    if (l.startsWith('```')) {
+      if (!inPre) { inPre = true; preLines = []; }
+      else { inPre = false; html += '<pre><code>'+escHtml(preLines.join('\n'))+'</code></pre>'; }
+      continue;
+    }
+    if (inPre) { preLines.push(l); continue; }
+
+    let line = escHtml(l);
+    line = line.replace(/\[\[([^\]]+)\]\]/g, '<span class="wikilink">[[$1]]</span>');
+    line = line.replace(/`([^`]+)`/g, '<code>$1</code>');
+    line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+    if (/^# /.test(l)) html += '<h1>'+line.slice(2)+'</h1>';
+    else if (/^## /.test(l)) html += '<h2>'+line.slice(3)+'</h2>';
+    else if (/^### /.test(l)) html += '<h3>'+line.slice(4)+'</h3>';
+    else if (/^\|/.test(l)) html += line + '<br>';
+    else if (/^- /.test(l)) html += '<li>'+line.slice(2)+'</li>';
+    else if (l.trim() === '') html += '<br>';
+    else html += '<p>'+line+'</p>';
+  }
+  return html;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// --- Actions ---
+function copyMd() {
+  if (!currentMd) return;
+  navigator.clipboard.writeText(currentMd).then(() => showToast('Copié dans le presse-papier', 'success'));
+}
+
+function downloadMd() {
+  if (!currentMd) return;
+  const blob = new Blob([currentMd], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = currentFilename.replace('.pdf', '.md');
+  a.click();
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+</script>
+</body>
+</html>

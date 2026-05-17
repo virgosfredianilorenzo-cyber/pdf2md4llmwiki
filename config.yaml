@@ -1,0 +1,40 @@
+# ============================================================
+# config.yaml — PDF2LLMWiki configuration
+# ============================================================
+
+# Modèle Ollama local (ollama list pour voir les disponibles)
+model: qwen2.5:7b
+
+# Chemin vers ton vault Obsidian (optionnel — copie auto)
+# vault_path: ~/Documents/Obsidian/MyVault
+vault_path: null
+
+# Dossier de sortie local (relatif au projet)
+output_dir: ./output
+
+# Langue principale du contenu PDF
+language: fr
+
+# Taille max des chunks RAG (en tokens approximatifs)
+chunk_size: 400
+
+# Génère automatiquement des tags à partir du contenu
+auto_tags: true
+
+# Nombre max de tags générés par document
+max_tags: 8
+
+# Inclut un résumé en début de note
+add_summary: true
+
+# Format des wikilinks générés [[concept]]
+generate_wikilinks: true
+
+# Températures LLM (0.0 = déterministe, 0.7 = créatif)
+temperature: 0.2
+
+# Timeout Ollama en secondes
+ollama_timeout: 120
+
+# Port du serveur local
+port: 8000
