@@ -1,3 +1,7 @@
+🇫🇷 Français | [🇬🇧 English](README.en.md) | [🇪🇸 Español](README.es.md)
+
+---
+
 # PDF2LLMWiki
 
 Transforme des PDFs en notes Markdown structurées pour ton vault **Obsidian** ou un **LLMWiki** style Karpathy.
@@ -48,6 +52,19 @@ Formatter              →  frontmatter YAML, nommage Obsidian
   ↓
 output/note.md         →  copie optionnelle dans le vault
 ```
+
+---
+
+## Modes d'extraction
+
+| Mode | LLM | Vitesse | Usage |
+|---|---|---|---|
+| **Synthèses détaillées** | Oui (Ollama) | 30-120s | Note wiki complète avec synthèse par section |
+| **Brute structurée** | Non | < 1s | Contenu complet préservé, idéal pour archivage ou post-traitement |
+
+**Synthèses détaillées** — chaque section H2, même courte, reçoit un paragraphe de synthèse de 3-5 phrases. Optimisé pour l'alimentation d'un LLMWiki ou vault Obsidian.
+
+**Brute structurée** — extraction pure sans appel réseau. La hiérarchie du document (titres H1/H2/H3, paragraphes, tableaux) est préservée telle quelle dans le Markdown.
 
 ---
 
