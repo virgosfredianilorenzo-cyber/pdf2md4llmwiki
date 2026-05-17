@@ -1,0 +1,17 @@
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Output
+output/
+
+# Divers
+.DS_Store
+*.tmp
