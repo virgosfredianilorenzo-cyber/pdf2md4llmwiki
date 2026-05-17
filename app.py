@@ -119,6 +119,7 @@ async def convert(
             "output_path": save_info["output_path"],
             "vault_path": save_info["vault_path"],
             "markdown": final_md,
+            "model_used": model,
             "stats": {
                 "pages": pdf_doc.pages,
                 "sections_extracted": len(pdf_doc.sections),

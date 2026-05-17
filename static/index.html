@@ -511,6 +511,7 @@ let currentTab = 'raw';
 let chunksData = [];
 let timerInterval = null;
 let abortController = null;
+let lastModelUsed = null;
 
 function startTimer(estimateSec = 60) {
   const elapsedEl = document.getElementById('timerElapsed');
@@ -553,7 +554,7 @@ async function checkStatus() {
     if (d.ollama) {
       dot.className = 'status-dot ok';
       label.textContent = 'Ollama actif · ' + d.models;
-      badge.textContent = d.current_model;
+      badge.textContent = lastModelUsed || d.current_model;
     } else {
       dot.className = 'status-dot err';
       label.textContent = 'Ollama introuvable — lance: ollama serve';
@@ -656,6 +657,8 @@ async function startConvert() {
     stopTimer(true);
     abortController = null;
     document.getElementById('btnStop').style.display = 'none';
+    lastModelUsed = data.model_used;
+    document.getElementById('modelBadge').textContent = data.model_used;
 
     // Stats
     const stats = data.stats;
