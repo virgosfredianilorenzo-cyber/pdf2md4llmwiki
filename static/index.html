@@ -97,7 +97,7 @@
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
   }
 
   .panel-section {
@@ -1065,6 +1065,9 @@ async function startConvert() {
     if (!ok) return;
     clearRightPanel();
   }
+  // Ferme la section install si ouverte pour libérer l'espace
+  const installSec = document.getElementById('installSection');
+  if (installSec && installSec.style.display === 'flex') toggleInstall();
   const btn = document.getElementById('btnConvert');
   const btnStop = document.getElementById('btnStop');
   btn.disabled = true;
