@@ -85,4 +85,12 @@ port: 8000
 
 ---
 
+## Soutenir le projet
+
+Si cet outil t'est utile, tu peux soutenir son développement sur Ko-fi :
+
+[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
+
+---
+
 ## Licence MIT
