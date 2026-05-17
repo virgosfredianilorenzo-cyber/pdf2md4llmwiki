@@ -289,15 +289,6 @@
   .progress-bar-fill.done { animation: none; width: 100%; background: var(--success); }
   .progress-step { font-size: 12px; color: var(--muted); }
 
-  .progress-timer {
-    display: flex;
-    gap: 16px;
-    margin-top: 6px;
-    font-size: 12px;
-    font-family: var(--mono);
-  }
-  .timer-elapsed { color: var(--muted); }
-  .timer-remaining { color: var(--warn); }
 
   .stats {
     display: none;
@@ -508,10 +499,6 @@
         <div class="progress-bar-fill" id="progressFill"></div>
       </div>
       <div class="progress-step" id="progressStep"></div>
-      <div class="progress-timer" id="progressTimer" style="display:none">
-        <span class="timer-elapsed" id="timerElapsed"></span>
-        <span class="timer-remaining" id="timerRemaining"></span>
-      </div>
     </div>
 
     <div class="stats" id="statsPanel">
@@ -589,11 +576,6 @@ const TRANSLATIONS = {
     'empty':             'Dépose un PDF et clique sur Convertir',
     'footer.local':      'PDF2LLMWiki · full local · aucun réseau externe',
     'footer.kofi':       '☕ Soutenir sur Ko-fi',
-    'timer.instant':     '⏱ instantané',
-    'timer.remaining':   '~{n}s restantes',
-    'timer.soon':        'encore quelques instants…',
-    'timer.done':        '✓ terminé',
-    'timer.stopped':     '✗ arrêté',
     'steps': ['Extraction du texte PDF…','Analyse de la structure…','Envoi au LLM local (peut prendre 30-90s)…','Post-traitement Markdown…','Sauvegarde…'],
     'conv.done':         '✓ Conversion terminée',
     'conv.stopped':      '⏹ Arrêté par l\'utilisateur',
@@ -632,11 +614,6 @@ const TRANSLATIONS = {
     'empty':             'Drop a PDF and click Convert',
     'footer.local':      'PDF2LLMWiki · fully local · no external network',
     'footer.kofi':       '☕ Support on Ko-fi',
-    'timer.instant':     '⏱ instant',
-    'timer.remaining':   '~{n}s left',
-    'timer.soon':        'a few more moments…',
-    'timer.done':        '✓ done',
-    'timer.stopped':     '✗ stopped',
     'steps': ['Extracting PDF text…','Analysing structure…','Sending to local LLM (may take 30-90s)…','Markdown post-processing…','Saving…'],
     'conv.done':         '✓ Conversion complete',
     'conv.stopped':      '⏹ Stopped by user',
@@ -675,11 +652,6 @@ const TRANSLATIONS = {
     'empty':             'Arrastra un PDF y haz clic en Convertir',
     'footer.local':      'PDF2LLMWiki · local · sin red externa',
     'footer.kofi':       '☕ Apoyar en Ko-fi',
-    'timer.instant':     '⏱ instantáneo',
-    'timer.remaining':   '~{n}s restantes',
-    'timer.soon':        'unos instantes más…',
-    'timer.done':        '✓ listo',
-    'timer.stopped':     '✗ detenido',
     'steps': ['Extrayendo texto del PDF…','Analizando estructura…','Enviando al LLM local (puede tardar 30-90s)…','Post-procesando Markdown…','Guardando…'],
     'conv.done':         '✓ Conversión completada',
     'conv.stopped':      '⏹ Detenido por el usuario',
@@ -706,11 +678,6 @@ function applyLang() {
   });
   ['langFr','langEn','langEs'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1)).classList.add('active');
-  // Timer initial si pas en cours
-  if (!timerInterval) {
-    document.getElementById('timerElapsed').textContent = '⏱ 0s';
-    document.getElementById('timerRemaining').textContent = t('timer.remaining', {n: 60});
-  }
   // Status label si pas connecté encore
   if (!document.getElementById('statusDot').classList.contains('ok')) {
     document.getElementById('statusLabel').textContent = t('status.checking');
@@ -728,7 +695,6 @@ let currentMd = '';
 let currentFilename = '';
 let currentTab = 'raw';
 let chunksData = [];
-let timerInterval = null;
 let abortController = null;
 let lastModelUsed = null;
 let configModel = '—';
@@ -752,30 +718,6 @@ function setMode(mode) {
   document.getElementById('modeRaw').classList.toggle('selected', mode === 'raw');
   document.getElementById('llmOptions').style.display = mode === 'raw' ? 'none' : '';
   updateBadge();
-}
-
-// ─── Timer ───────────────────────────────────────────────────────────────────
-function startTimer(estimateSec = 60) {
-  const elapsedEl = document.getElementById('timerElapsed');
-  const remainingEl = document.getElementById('timerRemaining');
-  document.getElementById('progressTimer').style.display = 'flex';
-  let elapsed = 0;
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    elapsed++;
-    const e = elapsed < 60 ? elapsed + 's' : Math.floor(elapsed/60) + 'm' + (elapsed%60).toString().padStart(2,'0') + 's';
-    elapsedEl.textContent = '⏱ ' + e;
-    const rem = estimateSec - elapsed;
-    remainingEl.textContent = rem > 0 ? t('timer.remaining', {n: rem}) : t('timer.soon');
-  }, 1000);
-}
-
-function stopTimer(success = true) {
-  clearInterval(timerInterval);
-  timerInterval = null;
-  const remainingEl = document.getElementById('timerRemaining');
-  remainingEl.textContent = success ? t('timer.done') : t('timer.stopped');
-  remainingEl.style.color = success ? 'var(--success)' : 'var(--danger)';
 }
 
 // ─── Status Ollama ───────────────────────────────────────────────────────────
@@ -823,7 +765,6 @@ function setFile(f) {
 // ─── Reset ───────────────────────────────────────────────────────────────────
 function resetUI() {
   if (abortController) { abortController.abort(); abortController = null; }
-  clearInterval(timerInterval); timerInterval = null;
 
   currentFilename = ''; currentMd = ''; chunksData = []; lastModelUsed = null; updateBadge();
   document.getElementById('fileInput').value = '';
@@ -835,10 +776,6 @@ function resetUI() {
   document.getElementById('progressBar').classList.remove('active');
   document.getElementById('progressFill').className = 'progress-bar-fill';
   document.getElementById('progressStep').textContent = '';
-  document.getElementById('progressTimer').style.display = 'none';
-  document.getElementById('timerElapsed').textContent = '⏱ 0s';
-  document.getElementById('timerRemaining').textContent = t('timer.remaining', {n: 60});
-  document.getElementById('timerRemaining').style.color = 'var(--warn)';
 
   document.getElementById('statsPanel').classList.remove('active');
   document.getElementById('previewEmpty').style.display = '';
@@ -870,20 +807,6 @@ async function startConvert() {
   const stepEl = document.getElementById('progressStep');
   progress.classList.add('active');
   fill.className = 'progress-bar-fill';
-  document.getElementById('timerRemaining').style.color = 'var(--warn)';
-
-  if (currentMode === 'raw') {
-    document.getElementById('progressTimer').style.display = 'flex';
-    document.getElementById('timerElapsed').textContent = t('timer.instant');
-    document.getElementById('timerRemaining').textContent = '';
-  } else {
-    const modelEstimates = {
-      '': 60, 'qwen2.5:7b': 60, 'llama3.2:3b': 30,
-      'mistral:7b': 120, 'mistral:7b-instruct-q4_K_M': 90,
-    };
-    startTimer(modelEstimates[document.getElementById('optModel').value] ?? 90);
-  }
-
   let stepIdx = 0;
   stepEl.textContent = steps[0];
   const stepInterval = setInterval(() => {
@@ -916,7 +839,6 @@ async function startConvert() {
 
     fill.className = 'progress-bar-fill done';
     stepEl.textContent = t('conv.done');
-    stopTimer(true);
     abortController = null;
     btnStop.style.display = 'none';
     lastModelUsed = data.model_used;
@@ -943,7 +865,6 @@ async function startConvert() {
     const aborted = e.name === 'AbortError';
     fill.style.background = aborted ? 'var(--warn)' : 'var(--danger)';
     stepEl.textContent = aborted ? t('conv.stopped') : t('conv.error') + e.message;
-    stopTimer(false);
     if (!aborted) showToast(e.message, 'error');
     abortController = null;
     btnStop.style.display = 'none';

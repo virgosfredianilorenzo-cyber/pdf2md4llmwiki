@@ -28,9 +28,12 @@ Pages : {pages}
 === INSTRUCTIONS ===
 Génère une note Markdown structurée avec :
 
-1. Un bloc frontmatter YAML entre --- (titre, auteur, date_extraction, tags, source, résumé_court)
+1. Un bloc frontmatter YAML Obsidian-compatible entre --- :
+   - Champs : title, author, date_extraction ({date_extraction}), source, tags, résumé_court
+   - tags DOIT être une liste YAML entre crochets : tags: [mot1, mot2, mot3]
+   - Encadrer de guillemets doubles toute valeur contenant ':' (ex: title, résumé_court)
 
-2. Un résumé global (section ## Résumé) de 25 à 30 phrases couvrant :
+2. Un résumé global (section ## Résumé) de 15 à 20 phrases couvrant :
    - Le sujet principal et son contexte historique ou disciplinaire
    - Les arguments ou thèses centraux, développés en détail
    - Les méthodes, approches ou cadres théoriques employés
@@ -73,13 +76,13 @@ def format_raw(pdf_doc: PDFDocument, pdf_filename: str) -> str:
     Formate les sections extraites en Markdown sans appel LLM.
     Génère un frontmatter minimal et préserve la structure H1/H2/H3.
     """
-    from datetime import date
+    from datetime import datetime
     lines: list[str] = []
 
     lines.append("---")
-    lines.append(f"title: {pdf_doc.title}")
+    lines.append(f'title: "{pdf_doc.title}"')
     lines.append(f"source: {pdf_filename}")
-    lines.append(f"date_extraction: {date.today().isoformat()}")
+    lines.append(f"date_extraction: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}")
     lines.append(f"pages: {pdf_doc.pages}")
     lines.append("tags: []")
     lines.append("mode: brute")
@@ -120,7 +123,9 @@ def structure_document(
     Envoie le contenu extrait à Ollama et récupère le Markdown structuré.
     Retourne la chaîne Markdown complète.
     """
+    from datetime import datetime
     content = sections_to_text(pdf_doc.sections, max_chars=6000)
+    now = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
 
     prompt = PROMPT_DETAILED.format(
         title=pdf_doc.title,
@@ -129,6 +134,7 @@ def structure_document(
         content=content,
         language=language,
         max_tags=max_tags,
+        date_extraction=now,
     )
 
     response = ollama.chat(

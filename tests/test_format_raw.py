@@ -15,7 +15,7 @@ def _make_doc(sections):
 def test_format_raw_contains_title_in_frontmatter():
     doc = _make_doc([PDFSection(level=1, text="Introduction", page=1)])
     md = format_raw(doc, "test.pdf")
-    assert "title: Test Doc" in md
+    assert 'title: "Test Doc"' in md
 
 
 def test_format_raw_h1_section():

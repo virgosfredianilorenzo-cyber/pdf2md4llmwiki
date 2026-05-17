@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 import yaml
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -53,6 +53,7 @@ async def status():
 
 @app.post("/api/convert")
 async def convert(
+    request: Request,
     file: UploadFile = File(...),
     model: str = Form(None),
     language: str = Form(None),
@@ -93,14 +94,23 @@ async def convert(
             raw_md = format_raw(pdf_doc, file.filename)
             model = "— (mode brut)"
         else:
-            raw_md = structure_document(
-                pdf_doc,
-                model=model,
-                language=language,
-                max_tags=max_tags,
-                temperature=CONFIG.get("temperature", 0.2),
-                timeout=CONFIG.get("ollama_timeout", 120),
+            llm_task = asyncio.create_task(
+                asyncio.to_thread(
+                    structure_document,
+                    pdf_doc,
+                    model=model,
+                    language=language,
+                    max_tags=max_tags,
+                    temperature=CONFIG.get("temperature", 0.2),
+                    timeout=CONFIG.get("ollama_timeout", 120),
+                )
             )
+            while not llm_task.done():
+                if await request.is_disconnected():
+                    llm_task.cancel()
+                    raise HTTPException(status_code=499, detail="Annulé par le client")
+                await asyncio.sleep(0.5)
+            raw_md = llm_task.result()
 
         # Étape 3 : Post-traitement
         final_md = process_markdown(raw_md, file.filename)

@@ -5,7 +5,7 @@ Garantit la conformité frontmatter + wikilinks + nommage Obsidian.
 from __future__ import annotations
 import re
 import shutil
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 import frontmatter  # python-frontmatter
 
@@ -32,7 +32,7 @@ def ensure_frontmatter(md_text: str, pdf_filename: str) -> str:
     # Valeurs par défaut si le LLM a oublié certains champs
     meta.setdefault("title", Path(pdf_filename).stem)
     meta.setdefault("source", pdf_filename)
-    meta.setdefault("date_extraction", date.today().isoformat())
+    meta.setdefault("date_extraction", datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
     meta.setdefault("tags", [])
     meta.setdefault("resume_court", "")
 
