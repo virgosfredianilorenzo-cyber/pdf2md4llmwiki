@@ -208,6 +208,25 @@
   }
   .btn-stop:hover { background: rgba(247,108,108,.1); }
 
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-sm {
+    flex: 1;
+    padding: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
   /* Progress */
   .progress {
     display: none;
@@ -449,6 +468,10 @@
       <button class="btn-stop" id="btnStop" onclick="stopConvert()" style="margin-top:8px">
         ✕ Arrêter
       </button>
+      <div class="btn-row">
+        <button class="btn-sm" onclick="resetUI()" title="Réinitialiser l'interface">↺ Nouvelle conv.</button>
+        <button class="btn-sm" onclick="location.reload()" title="Recharger la page et reconnecter au serveur">⟳ Recharger</button>
+      </div>
     </div>
 
     <div class="progress" id="progressBar">
@@ -587,6 +610,45 @@ function setFile(f) {
   document.getElementById('fileName').textContent = f.name;
   dropzone.classList.add('has-file');
   document.getElementById('btnConvert').disabled = false;
+}
+
+function resetUI() {
+  // Annule une conversion en cours
+  if (abortController) { abortController.abort(); abortController = null; }
+  clearInterval(timerInterval); timerInterval = null;
+
+  // Fichier
+  currentFilename = '';
+  currentMd = '';
+  chunksData = [];
+  lastModelUsed = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('fileName').textContent = '';
+  document.getElementById('dropzone').classList.remove('has-file');
+  document.getElementById('btnConvert').disabled = true;
+  document.getElementById('btnStop').style.display = 'none';
+
+  // Progress
+  const pb = document.getElementById('progressBar');
+  pb.classList.remove('active');
+  document.getElementById('progressFill').className = 'progress-bar-fill';
+  document.getElementById('progressStep').textContent = 'Extraction du texte…';
+  document.getElementById('progressTimer').style.display = 'none';
+  document.getElementById('timerElapsed').textContent = '⏱ 0s';
+  document.getElementById('timerRemaining').textContent = '~60s restantes';
+  document.getElementById('timerRemaining').style.color = 'var(--warn)';
+
+  // Stats & prévisualisation
+  document.getElementById('statsPanel').classList.remove('active');
+  document.getElementById('previewEmpty').style.display = '';
+  document.getElementById('previewRaw').style.display = 'none';
+  document.getElementById('previewRendered').style.display = 'none';
+  document.getElementById('previewChunks').style.display = 'none';
+  document.getElementById('tabChunks').style.display = 'none';
+  document.getElementById('btnDl').style.display = 'none';
+  document.getElementById('footerPath').textContent = '';
+  ['tabRaw','tabRendered'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  document.getElementById('tabRaw').classList.add('active');
 }
 
 function stopConvert() {
