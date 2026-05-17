@@ -55,8 +55,26 @@
 
   .status-label { font-size: 12px; color: var(--muted); }
 
-  .model-badge {
+  .lang-switcher {
     margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+  .lang-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 14px;
+    cursor: pointer;
+    opacity: .5;
+    transition: opacity .2s, border-color .2s;
+    line-height: 1;
+  }
+  .lang-btn:hover { opacity: .8; }
+  .lang-btn.active { opacity: 1; border-color: var(--border); background: var(--bg3); }
+
+  .model-badge {
     background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -74,7 +92,6 @@
     height: calc(100vh - 52px - 36px);
   }
 
-  /* Panneau gauche */
   .panel-left {
     background: var(--bg2);
     border-right: 1px solid var(--border);
@@ -97,7 +114,6 @@
     margin-bottom: 12px;
   }
 
-  /* Drop zone */
   .dropzone {
     border: 2px dashed var(--border);
     border-radius: 10px;
@@ -124,7 +140,6 @@
     word-break: break-all;
   }
 
-  /* Options */
   .opts { display: flex; flex-direction: column; gap: 10px; }
 
   .field label {
@@ -174,7 +189,6 @@
   }
   .toggle.on::after { left: 19px; }
 
-  /* Bouton convert */
   .btn-convert {
     width: 100%;
     padding: 12px;
@@ -205,14 +219,11 @@
     transition: background .2s;
     letter-spacing: .02em;
     display: none;
+    margin-top: 8px;
   }
   .btn-stop:hover { background: rgba(247,108,108,.1); }
 
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-  }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
   .btn-sm {
     flex: 1;
     padding: 8px;
@@ -249,7 +260,6 @@
 
   #llmOptions { display: flex; flex-direction: column; gap: 10px; }
 
-  /* Progress */
   .progress {
     display: none;
     padding: 14px 20px;
@@ -289,7 +299,6 @@
   .timer-elapsed { color: var(--muted); }
   .timer-remaining { color: var(--warn); }
 
-  /* Stats */
   .stats {
     display: none;
     padding: 14px 20px;
@@ -302,12 +311,7 @@
   .stat-val { font-size: 18px; font-weight: 700; color: var(--accent2); font-variant-numeric: tabular-nums; }
   .stat-key { font-size: 11px; color: var(--muted); }
 
-  /* Panneau droit : Markdown */
-  .panel-right {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  .panel-right { display: flex; flex-direction: column; overflow: hidden; }
 
   .preview-toolbar {
     background: var(--bg2);
@@ -360,11 +364,7 @@
     background: var(--bg);
   }
 
-  .preview-content.rendered {
-    font-family: system-ui, sans-serif;
-    font-size: 14px;
-    white-space: normal;
-  }
+  .preview-content.rendered { font-family: system-ui, sans-serif; font-size: 14px; white-space: normal; }
 
   .preview-empty {
     display: flex;
@@ -376,10 +376,8 @@
     flex-direction: column;
     gap: 8px;
   }
-
   .preview-empty .empty-icon { font-size: 40px; opacity: .3; }
 
-  /* MD rendu */
   .md-rendered h1 { font-size: 20px; font-weight: 700; margin: 20px 0 10px; color: var(--accent); }
   .md-rendered h2 { font-size: 16px; font-weight: 600; margin: 16px 0 8px; color: var(--accent2); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
   .md-rendered h3 { font-size: 14px; font-weight: 600; margin: 12px 0 6px; }
@@ -432,39 +430,43 @@
 <header>
   <div class="status-dot" id="statusDot"></div>
   <h1>PDF<span>2</span>LLMWiki</h1>
-  <span class="status-label" id="statusLabel">vérification Ollama…</span>
+  <span class="status-label" id="statusLabel" data-i18n="status.checking"></span>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('fr')" id="langFr">🇫🇷</button>
+    <button class="lang-btn" onclick="setLang('en')" id="langEn">🇬🇧</button>
+    <button class="lang-btn" onclick="setLang('es')" id="langEs">🇪🇸</button>
+  </div>
   <span class="model-badge" id="modelBadge">—</span>
 </header>
 
 <main>
-  <!-- Panneau gauche -->
   <div class="panel-left">
 
     <div class="panel-section">
-      <h2>Document PDF</h2>
+      <h2 data-i18n="section.pdf"></h2>
       <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept=".pdf">
         <div class="drop-icon">📄</div>
-        <div class="drop-label"><strong>Glisse un PDF</strong> ou clique</div>
+        <div class="drop-label" id="dropLabel" data-i18n-html="drop.label"></div>
         <div class="file-name" id="fileName"></div>
       </div>
     </div>
 
     <div class="panel-section">
-      <h2>Options</h2>
+      <h2 data-i18n="section.options"></h2>
       <div class="opts">
         <div class="field">
-          <label>Mode d'extraction</label>
+          <label data-i18n="mode.label"></label>
           <div class="mode-selector">
-            <div class="mode-btn selected" id="modeDetailed" onclick="setMode('detailed')">✦ Synthèses détaillées</div>
-            <div class="mode-btn" id="modeRaw" onclick="setMode('raw')">≡ Brute structurée</div>
+            <div class="mode-btn selected" id="modeDetailed" onclick="setMode('detailed')" data-i18n="mode.detailed"></div>
+            <div class="mode-btn" id="modeRaw" onclick="setMode('raw')" data-i18n="mode.raw"></div>
           </div>
         </div>
         <div id="llmOptions">
           <div class="field">
-            <label>Modèle Ollama</label>
+            <label data-i18n="opt.model"></label>
             <select id="optModel">
-              <option value="">Modèle par défaut (défini dans config.yaml)</option>
+              <option value="" data-i18n="opt.model.default"></option>
               <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
               <option value="mistral:7b">mistral:7b</option>
               <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
@@ -472,7 +474,7 @@
             </select>
           </div>
           <div class="field">
-            <label>Langue du document</label>
+            <label data-i18n="opt.lang"></label>
             <select id="optLang">
               <option value="fr">Français</option>
               <option value="en">English</option>
@@ -481,27 +483,23 @@
             </select>
           </div>
           <div class="field">
-            <label>Nombre de tags max</label>
+            <label data-i18n="opt.tags"></label>
             <input type="number" id="optTags" value="8" min="3" max="20">
           </div>
         </div>
         <div class="toggle-row">
-          <span>Chunks RAG</span>
+          <span data-i18n="opt.chunks"></span>
           <div class="toggle" id="toggleChunks" onclick="this.classList.toggle('on')"></div>
         </div>
       </div>
     </div>
 
     <div class="panel-section" style="border-bottom:none; padding-top:16px;">
-      <button class="btn-convert" id="btnConvert" onclick="startConvert()" disabled>
-        Convertir en Markdown
-      </button>
-      <button class="btn-stop" id="btnStop" onclick="stopConvert()" style="margin-top:8px; display:none">
-        ✕ Arrêter
-      </button>
+      <button class="btn-convert" id="btnConvert" onclick="startConvert()" disabled data-i18n="btn.convert"></button>
+      <button class="btn-stop" id="btnStop" onclick="stopConvert()" data-i18n="btn.stop"></button>
       <div class="btn-row">
-        <button class="btn-sm" onclick="resetUI()">↺ Nouveau</button>
-        <button class="btn-sm" onclick="location.reload()">⟳ Recharger</button>
+        <button class="btn-sm" onclick="resetUI()" data-i18n="btn.new"></button>
+        <button class="btn-sm" onclick="location.reload()" data-i18n="btn.reload"></button>
       </div>
     </div>
 
@@ -509,35 +507,34 @@
       <div class="progress-bar-track">
         <div class="progress-bar-fill" id="progressFill"></div>
       </div>
-      <div class="progress-step" id="progressStep">Extraction du texte…</div>
+      <div class="progress-step" id="progressStep"></div>
       <div class="progress-timer" id="progressTimer" style="display:none">
-        <span class="timer-elapsed" id="timerElapsed">⏱ 0s</span>
-        <span class="timer-remaining" id="timerRemaining">~60s restantes</span>
+        <span class="timer-elapsed" id="timerElapsed"></span>
+        <span class="timer-remaining" id="timerRemaining"></span>
       </div>
     </div>
 
     <div class="stats" id="statsPanel">
-      <div class="stat-item"><span class="stat-val" id="statPages">—</span><span class="stat-key">pages</span></div>
-      <div class="stat-item"><span class="stat-val" id="statSections">—</span><span class="stat-key">sections</span></div>
-      <div class="stat-item"><span class="stat-val" id="statChars">—</span><span class="stat-key">caractères</span></div>
-      <div class="stat-item"><span class="stat-val" id="statChunks">—</span><span class="stat-key">chunks RAG</span></div>
+      <div class="stat-item"><span class="stat-val" id="statPages">—</span><span class="stat-key" data-i18n="stat.pages"></span></div>
+      <div class="stat-item"><span class="stat-val" id="statSections">—</span><span class="stat-key" data-i18n="stat.sections"></span></div>
+      <div class="stat-item"><span class="stat-val" id="statChars">—</span><span class="stat-key" data-i18n="stat.chars"></span></div>
+      <div class="stat-item"><span class="stat-val" id="statChunks">—</span><span class="stat-key" data-i18n="stat.chunks"></span></div>
     </div>
 
   </div>
 
-  <!-- Panneau droit -->
   <div class="panel-right">
     <div class="preview-toolbar">
-      <button class="tab-btn active" id="tabRaw" onclick="setTab('raw')">Source MD</button>
-      <button class="tab-btn" id="tabRendered" onclick="setTab('rendered')">Aperçu rendu</button>
-      <button class="tab-btn" id="tabChunks" onclick="setTab('chunks')" style="display:none">Chunks RAG</button>
-      <button class="btn-copy" onclick="copyMd()">Copier</button>
-      <button class="btn-dl" id="btnDl" onclick="downloadMd()" style="display:none">↓ Télécharger</button>
+      <button class="tab-btn active" id="tabRaw" onclick="setTab('raw')" data-i18n="tab.raw"></button>
+      <button class="tab-btn" id="tabRendered" onclick="setTab('rendered')" data-i18n="tab.rendered"></button>
+      <button class="tab-btn" id="tabChunks" onclick="setTab('chunks')" style="display:none" data-i18n="tab.chunks"></button>
+      <button class="btn-copy" onclick="copyMd()" data-i18n="btn.copy"></button>
+      <button class="btn-dl" id="btnDl" onclick="downloadMd()" style="display:none" data-i18n="btn.dl"></button>
     </div>
 
     <div id="previewEmpty" class="preview-empty">
       <div class="empty-icon">🗂</div>
-      <span>Dépose un PDF et clique sur Convertir</span>
+      <span data-i18n="empty"></span>
     </div>
 
     <div id="previewRaw" class="preview-content" style="display:none"></div>
@@ -547,18 +544,186 @@
 </main>
 
 <footer>
-  <span>PDF2LLMWiki · full local · aucun réseau externe</span>
+  <span data-i18n="footer.local"></span>
   <span id="footerPath" style="font-family:monospace"></span>
   <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener"
      style="margin-left:auto; display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--muted); font-size:11px; transition:color .2s;"
-     onmouseover="this.style.color='var(--warn)'" onmouseout="this.style.color='var(--muted)'">
-    ☕ Soutenir sur Ko-fi
-  </a>
+     onmouseover="this.style.color='var(--warn)'" onmouseout="this.style.color='var(--muted)'"
+     data-i18n="footer.kofi"></a>
 </footer>
 
 <div class="toast" id="toast"></div>
 
 <script>
+// ─── i18n ────────────────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  fr: {
+    'status.checking':   'vérification Ollama…',
+    'status.active':     'Ollama actif · ',
+    'status.notfound':   'Ollama introuvable — lance : ollama serve',
+    'status.unreachable':'Serveur inaccessible',
+    'section.pdf':       'Document PDF',
+    'section.options':   'Options',
+    'drop.label':        '<strong>Glisse un PDF</strong> ou clique',
+    'mode.label':        'Mode d\'extraction',
+    'mode.detailed':     '✦ Synthèses détaillées',
+    'mode.raw':          '≡ Brute structurée',
+    'opt.model':         'Modèle Ollama',
+    'opt.model.default': 'Modèle par défaut (défini dans config.yaml)',
+    'opt.lang':          'Langue du document',
+    'opt.tags':          'Nombre de tags max',
+    'opt.chunks':        'Chunks RAG',
+    'btn.convert':       'Convertir en Markdown',
+    'btn.stop':          '✕ Arrêter',
+    'btn.new':           '↺ Nouveau',
+    'btn.reload':        '⟳ Recharger',
+    'stat.pages':        'pages',
+    'stat.sections':     'sections',
+    'stat.chars':        'caractères',
+    'stat.chunks':       'chunks RAG',
+    'tab.raw':           'Source MD',
+    'tab.rendered':      'Aperçu rendu',
+    'tab.chunks':        'Chunks RAG',
+    'btn.copy':          'Copier',
+    'btn.dl':            '↓ Télécharger',
+    'empty':             'Dépose un PDF et clique sur Convertir',
+    'footer.local':      'PDF2LLMWiki · full local · aucun réseau externe',
+    'footer.kofi':       '☕ Soutenir sur Ko-fi',
+    'timer.instant':     '⏱ instantané',
+    'timer.remaining':   '~{n}s restantes',
+    'timer.soon':        'encore quelques instants…',
+    'timer.done':        '✓ terminé',
+    'timer.stopped':     '✗ arrêté',
+    'steps': ['Extraction du texte PDF…','Analyse de la structure…','Envoi au LLM local (peut prendre 30-90s)…','Post-traitement Markdown…','Sauvegarde…'],
+    'conv.done':         '✓ Conversion terminée',
+    'conv.stopped':      '⏹ Arrêté par l\'utilisateur',
+    'conv.error':        '✗ Erreur : ',
+    'copied':            'Copié dans le presse-papier',
+  },
+  en: {
+    'status.checking':   'checking Ollama…',
+    'status.active':     'Ollama active · ',
+    'status.notfound':   'Ollama not found — run: ollama serve',
+    'status.unreachable':'Server unreachable',
+    'section.pdf':       'PDF Document',
+    'section.options':   'Options',
+    'drop.label':        '<strong>Drop a PDF</strong> or click',
+    'mode.label':        'Extraction mode',
+    'mode.detailed':     '✦ Detailed syntheses',
+    'mode.raw':          '≡ Raw structured',
+    'opt.model':         'Ollama model',
+    'opt.model.default': 'Default model (set in config.yaml)',
+    'opt.lang':          'Document language',
+    'opt.tags':          'Max tags count',
+    'opt.chunks':        'RAG chunks',
+    'btn.convert':       'Convert to Markdown',
+    'btn.stop':          '✕ Stop',
+    'btn.new':           '↺ New',
+    'btn.reload':        '⟳ Reload',
+    'stat.pages':        'pages',
+    'stat.sections':     'sections',
+    'stat.chars':        'characters',
+    'stat.chunks':       'RAG chunks',
+    'tab.raw':           'MD Source',
+    'tab.rendered':      'Rendered preview',
+    'tab.chunks':        'RAG Chunks',
+    'btn.copy':          'Copy',
+    'btn.dl':            '↓ Download',
+    'empty':             'Drop a PDF and click Convert',
+    'footer.local':      'PDF2LLMWiki · fully local · no external network',
+    'footer.kofi':       '☕ Support on Ko-fi',
+    'timer.instant':     '⏱ instant',
+    'timer.remaining':   '~{n}s left',
+    'timer.soon':        'a few more moments…',
+    'timer.done':        '✓ done',
+    'timer.stopped':     '✗ stopped',
+    'steps': ['Extracting PDF text…','Analysing structure…','Sending to local LLM (may take 30-90s)…','Markdown post-processing…','Saving…'],
+    'conv.done':         '✓ Conversion complete',
+    'conv.stopped':      '⏹ Stopped by user',
+    'conv.error':        '✗ Error: ',
+    'copied':            'Copied to clipboard',
+  },
+  es: {
+    'status.checking':   'verificando Ollama…',
+    'status.active':     'Ollama activo · ',
+    'status.notfound':   'Ollama no encontrado — ejecuta: ollama serve',
+    'status.unreachable':'Servidor inaccesible',
+    'section.pdf':       'Documento PDF',
+    'section.options':   'Opciones',
+    'drop.label':        '<strong>Arrastra un PDF</strong> o haz clic',
+    'mode.label':        'Modo de extracción',
+    'mode.detailed':     '✦ Síntesis detalladas',
+    'mode.raw':          '≡ Bruta estructurada',
+    'opt.model':         'Modelo Ollama',
+    'opt.model.default': 'Modelo por defecto (definido en config.yaml)',
+    'opt.lang':          'Idioma del documento',
+    'opt.tags':          'Nº máximo de etiquetas',
+    'opt.chunks':        'Chunks RAG',
+    'btn.convert':       'Convertir a Markdown',
+    'btn.stop':          '✕ Detener',
+    'btn.new':           '↺ Nuevo',
+    'btn.reload':        '⟳ Recargar',
+    'stat.pages':        'páginas',
+    'stat.sections':     'secciones',
+    'stat.chars':        'caracteres',
+    'stat.chunks':       'chunks RAG',
+    'tab.raw':           'Fuente MD',
+    'tab.rendered':      'Vista renderizada',
+    'tab.chunks':        'Chunks RAG',
+    'btn.copy':          'Copiar',
+    'btn.dl':            '↓ Descargar',
+    'empty':             'Arrastra un PDF y haz clic en Convertir',
+    'footer.local':      'PDF2LLMWiki · local · sin red externa',
+    'footer.kofi':       '☕ Apoyar en Ko-fi',
+    'timer.instant':     '⏱ instantáneo',
+    'timer.remaining':   '~{n}s restantes',
+    'timer.soon':        'unos instantes más…',
+    'timer.done':        '✓ listo',
+    'timer.stopped':     '✗ detenido',
+    'steps': ['Extrayendo texto del PDF…','Analizando estructura…','Enviando al LLM local (puede tardar 30-90s)…','Post-procesando Markdown…','Guardando…'],
+    'conv.done':         '✓ Conversión completada',
+    'conv.stopped':      '⏹ Detenido por el usuario',
+    'conv.error':        '✗ Error: ',
+    'copied':            'Copiado al portapapeles',
+  },
+};
+
+let lang = localStorage.getItem('ui-lang') || 'fr';
+
+function t(key, vars = {}) {
+  let s = (TRANSLATIONS[lang] || TRANSLATIONS.fr)[key] || key;
+  for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, v);
+  return s;
+}
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  ['langFr','langEn','langEs'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('lang' + lang.charAt(0).toUpperCase() + lang.slice(1)).classList.add('active');
+  // Timer initial si pas en cours
+  if (!timerInterval) {
+    document.getElementById('timerElapsed').textContent = '⏱ 0s';
+    document.getElementById('timerRemaining').textContent = t('timer.remaining', {n: 60});
+  }
+  // Status label si pas connecté encore
+  if (!document.getElementById('statusDot').classList.contains('ok')) {
+    document.getElementById('statusLabel').textContent = t('status.checking');
+  }
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('ui-lang', l);
+  applyLang();
+}
+
+// ─── État ────────────────────────────────────────────────────────────────────
 let currentMd = '';
 let currentFilename = '';
 let currentTab = 'raw';
@@ -568,6 +733,7 @@ let abortController = null;
 let lastModelUsed = null;
 let currentMode = 'detailed';
 
+// ─── Mode ────────────────────────────────────────────────────────────────────
 function setMode(mode) {
   currentMode = mode;
   document.getElementById('modeDetailed').classList.toggle('selected', mode === 'detailed');
@@ -575,25 +741,19 @@ function setMode(mode) {
   document.getElementById('llmOptions').style.display = mode === 'raw' ? 'none' : '';
 }
 
+// ─── Timer ───────────────────────────────────────────────────────────────────
 function startTimer(estimateSec = 60) {
   const elapsedEl = document.getElementById('timerElapsed');
   const remainingEl = document.getElementById('timerRemaining');
-  const timerEl = document.getElementById('progressTimer');
-  timerEl.style.display = 'flex';
-
+  document.getElementById('progressTimer').style.display = 'flex';
   let elapsed = 0;
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     elapsed++;
     const e = elapsed < 60 ? elapsed + 's' : Math.floor(elapsed/60) + 'm' + (elapsed%60).toString().padStart(2,'0') + 's';
     elapsedEl.textContent = '⏱ ' + e;
-
     const rem = estimateSec - elapsed;
-    if (rem > 0) {
-      remainingEl.textContent = '~' + rem + 's restantes';
-    } else {
-      remainingEl.textContent = 'encore quelques instants…';
-    }
+    remainingEl.textContent = rem > 0 ? t('timer.remaining', {n: rem}) : t('timer.soon');
   }, 1000);
 }
 
@@ -601,11 +761,11 @@ function stopTimer(success = true) {
   clearInterval(timerInterval);
   timerInterval = null;
   const remainingEl = document.getElementById('timerRemaining');
-  remainingEl.textContent = success ? '✓ terminé' : '✗ arrêté';
+  remainingEl.textContent = success ? t('timer.done') : t('timer.stopped');
   remainingEl.style.color = success ? 'var(--success)' : 'var(--danger)';
 }
 
-// --- Status Ollama ---
+// ─── Status Ollama ───────────────────────────────────────────────────────────
 async function checkStatus() {
   try {
     const r = await fetch('/api/status');
@@ -615,20 +775,18 @@ async function checkStatus() {
     const badge = document.getElementById('modelBadge');
     if (d.ollama) {
       dot.className = 'status-dot ok';
-      label.textContent = 'Ollama actif · ' + d.models;
+      label.textContent = t('status.active') + d.models;
       badge.textContent = lastModelUsed || d.current_model;
     } else {
       dot.className = 'status-dot err';
-      label.textContent = 'Ollama introuvable — lance: ollama serve';
+      label.textContent = t('status.notfound');
     }
   } catch(e) {
-    document.getElementById('statusLabel').textContent = 'Serveur inaccessible';
+    document.getElementById('statusLabel').textContent = t('status.unreachable');
   }
 }
-checkStatus();
-setInterval(checkStatus, 15000);
 
-// --- Drag & drop ---
+// ─── Drag & drop ─────────────────────────────────────────────────────────────
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 
@@ -640,9 +798,7 @@ dropzone.addEventListener('drop', e => {
   const f = e.dataTransfer.files[0];
   if (f && f.name.endsWith('.pdf')) setFile(f);
 });
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) setFile(fileInput.files[0]);
-});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
 
 function setFile(f) {
   currentFilename = f.name;
@@ -651,33 +807,26 @@ function setFile(f) {
   document.getElementById('btnConvert').disabled = false;
 }
 
+// ─── Reset ───────────────────────────────────────────────────────────────────
 function resetUI() {
-  // Annule une conversion en cours
   if (abortController) { abortController.abort(); abortController = null; }
   clearInterval(timerInterval); timerInterval = null;
 
-  // Fichier
-  currentFilename = '';
-  currentMd = '';
-  chunksData = [];
-  lastModelUsed = null;
+  currentFilename = ''; currentMd = ''; chunksData = []; lastModelUsed = null;
   document.getElementById('fileInput').value = '';
   document.getElementById('fileName').textContent = '';
   document.getElementById('dropzone').classList.remove('has-file');
   document.getElementById('btnConvert').disabled = true;
   document.getElementById('btnStop').style.display = 'none';
 
-  // Progress
-  const pb = document.getElementById('progressBar');
-  pb.classList.remove('active');
+  document.getElementById('progressBar').classList.remove('active');
   document.getElementById('progressFill').className = 'progress-bar-fill';
-  document.getElementById('progressStep').textContent = 'Extraction du texte…';
+  document.getElementById('progressStep').textContent = '';
   document.getElementById('progressTimer').style.display = 'none';
   document.getElementById('timerElapsed').textContent = '⏱ 0s';
-  document.getElementById('timerRemaining').textContent = '~60s restantes';
+  document.getElementById('timerRemaining').textContent = t('timer.remaining', {n: 60});
   document.getElementById('timerRemaining').style.color = 'var(--warn)';
 
-  // Stats & prévisualisation
   document.getElementById('statsPanel').classList.remove('active');
   document.getElementById('previewEmpty').style.display = '';
   document.getElementById('previewRaw').style.display = 'none';
@@ -686,18 +835,15 @@ function resetUI() {
   document.getElementById('tabChunks').style.display = 'none';
   document.getElementById('btnDl').style.display = 'none';
   document.getElementById('footerPath').textContent = '';
-  ['tabRaw','tabRendered'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  ['tabRaw','tabRendered'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('tabRaw').classList.add('active');
 }
 
 function stopConvert() {
-  if (abortController) {
-    abortController.abort();
-    abortController = null;
-  }
+  if (abortController) { abortController.abort(); abortController = null; }
 }
 
-// --- Conversion ---
+// ─── Conversion ──────────────────────────────────────────────────────────────
 async function startConvert() {
   if (!currentFilename) return;
   const btn = document.getElementById('btnConvert');
@@ -705,42 +851,30 @@ async function startConvert() {
   btn.disabled = true;
   btnStop.style.display = 'block';
 
-  const steps = [
-    'Extraction du texte PDF…',
-    'Analyse de la structure…',
-    'Envoi au LLM local (peut prendre 30-90s)…',
-    'Post-traitement Markdown…',
-    'Sauvegarde…',
-  ];
-
+  const steps = t('steps');
   const progress = document.getElementById('progressBar');
   const fill = document.getElementById('progressFill');
   const stepEl = document.getElementById('progressStep');
   progress.classList.add('active');
   fill.className = 'progress-bar-fill';
   document.getElementById('timerRemaining').style.color = 'var(--warn)';
+
   if (currentMode === 'raw') {
     document.getElementById('progressTimer').style.display = 'flex';
-    document.getElementById('timerElapsed').textContent = '⏱ instantané';
+    document.getElementById('timerElapsed').textContent = t('timer.instant');
     document.getElementById('timerRemaining').textContent = '';
   } else {
     const modelEstimates = {
-      '':                              60,
-      'qwen2.5:7b':                    60,
-      'llama3.2:3b':                   30,
-      'mistral:7b':                   120,
-      'mistral:7b-instruct-q4_K_M':   90,
+      '': 60, 'qwen2.5:7b': 60, 'llama3.2:3b': 30,
+      'mistral:7b': 120, 'mistral:7b-instruct-q4_K_M': 90,
     };
-    const selectedModel = document.getElementById('optModel').value;
-    startTimer(modelEstimates[selectedModel] ?? 90);
+    startTimer(modelEstimates[document.getElementById('optModel').value] ?? 90);
   }
 
   let stepIdx = 0;
+  stepEl.textContent = steps[0];
   const stepInterval = setInterval(() => {
-    if (stepIdx < steps.length - 1) {
-      stepIdx++;
-      stepEl.textContent = steps[stepIdx];
-    }
+    if (stepIdx < steps.length - 1) stepEl.textContent = steps[++stepIdx];
   }, 4000);
 
   try {
@@ -753,7 +887,6 @@ async function startConvert() {
     formData.append('add_chunks', document.getElementById('toggleChunks').classList.contains('on') ? 'true' : 'false');
     formData.append('mode', currentMode);
 
-    stepEl.textContent = steps[0];
     abortController = new AbortController();
     const r = await fetch('/api/convert', { method: 'POST', body: formData, signal: abortController.signal });
     clearInterval(stepInterval);
@@ -769,14 +902,13 @@ async function startConvert() {
     chunksData = data.chunks || [];
 
     fill.className = 'progress-bar-fill done';
-    stepEl.textContent = '✓ Conversion terminée';
+    stepEl.textContent = t('conv.done');
     stopTimer(true);
     abortController = null;
-    document.getElementById('btnStop').style.display = 'none';
+    btnStop.style.display = 'none';
     lastModelUsed = data.model_used;
     document.getElementById('modelBadge').textContent = data.model_used;
 
-    // Stats
     const stats = data.stats;
     document.getElementById('statPages').textContent = stats.pages;
     document.getElementById('statSections').textContent = stats.sections_extracted;
@@ -784,18 +916,12 @@ async function startConvert() {
     document.getElementById('statChunks').textContent = stats.chunks;
     document.getElementById('statsPanel').classList.add('active');
 
-    // Affichage
     document.getElementById('previewEmpty').style.display = 'none';
     document.getElementById('previewRaw').style.display = 'block';
     document.getElementById('previewRaw').textContent = currentMd;
-
-    if (chunksData.length > 0) {
-      document.getElementById('tabChunks').style.display = '';
-    }
-
+    if (chunksData.length > 0) document.getElementById('tabChunks').style.display = '';
     document.getElementById('btnDl').style.display = '';
     document.getElementById('footerPath').textContent = data.output_path;
-
     setTab('raw');
     showToast('✓ ' + data.filename, 'success');
 
@@ -803,24 +929,23 @@ async function startConvert() {
     clearInterval(stepInterval);
     const aborted = e.name === 'AbortError';
     fill.style.background = aborted ? 'var(--warn)' : 'var(--danger)';
-    stepEl.textContent = aborted ? '⏹ Arrêté par l\'utilisateur' : '✗ Erreur : ' + e.message;
+    stepEl.textContent = aborted ? t('conv.stopped') : t('conv.error') + e.message;
     stopTimer(false);
     if (!aborted) showToast(e.message, 'error');
     abortController = null;
-    document.getElementById('btnStop').style.display = 'none';
+    btnStop.style.display = 'none';
   }
 
   setTimeout(() => btn.disabled = false, 1000);
 }
 
-// --- Tabs ---
+// ─── Tabs ────────────────────────────────────────────────────────────────────
 function setTab(tab) {
   currentTab = tab;
   ['raw','rendered','chunks'].forEach(t => {
-    document.getElementById('preview'+capitalize(t)).style.display = 'none';
-    document.getElementById('tab'+capitalize(t))?.classList.remove('active');
+    document.getElementById('preview'+cap(t)).style.display = 'none';
+    document.getElementById('tab'+cap(t))?.classList.remove('active');
   });
-
   if (tab === 'rendered') {
     const el = document.getElementById('previewRendered');
     el.style.display = 'block';
@@ -834,42 +959,35 @@ function setTab(tab) {
   } else {
     document.getElementById('previewRaw').style.display = 'block';
   }
-  document.getElementById('tab'+capitalize(tab))?.classList.add('active');
+  document.getElementById('tab'+cap(tab))?.classList.add('active');
 }
 
-function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-// --- Rendu MD basique ---
+// ─── Rendu MD ────────────────────────────────────────────────────────────────
 function renderMd(md) {
   let html = '';
   const lines = md.split('\n');
-  let inFrontmatter = false;
-  let fmLines = [];
-  let fmDone = false;
-  let inPre = false;
-  let preLines = [];
-
+  let inFrontmatter = false, fmLines = [], inPre = false, preLines = [];
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (i === 0 && l === '---') { inFrontmatter = true; continue; }
     if (inFrontmatter) {
-      if (l === '---') { inFrontmatter = false; fmDone = true; html += '<div class="frontmatter">'+fmLines.join('\n')+'</div>'; }
+      if (l === '---') { inFrontmatter = false; html += '<div class="frontmatter">'+fmLines.join('\n')+'</div>'; }
       else fmLines.push(l);
       continue;
     }
     if (l.startsWith('```')) {
       if (!inPre) { inPre = true; preLines = []; }
-      else { inPre = false; html += '<pre><code>'+escHtml(preLines.join('\n'))+'</code></pre>'; }
+      else { inPre = false; html += '<pre><code>'+esc(preLines.join('\n'))+'</code></pre>'; }
       continue;
     }
     if (inPre) { preLines.push(l); continue; }
-
-    let line = escHtml(l);
+    let line = esc(l);
     line = line.replace(/\[\[([^\]]+)\]\]/g, '<span class="wikilink">[[$1]]</span>');
     line = line.replace(/`([^`]+)`/g, '<code>$1</code>');
     line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-
     if (/^# /.test(l)) html += '<h1>'+line.slice(2)+'</h1>';
     else if (/^## /.test(l)) html += '<h2>'+line.slice(3)+'</h2>';
     else if (/^### /.test(l)) html += '<h3>'+line.slice(4)+'</h3>';
@@ -881,14 +999,12 @@ function renderMd(md) {
   return html;
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// --- Actions ---
+// ─── Actions ─────────────────────────────────────────────────────────────────
 function copyMd() {
   if (!currentMd) return;
-  navigator.clipboard.writeText(currentMd).then(() => showToast('Copié dans le presse-papier', 'success'));
+  navigator.clipboard.writeText(currentMd).then(() => showToast(t('copied'), 'success'));
 }
 
 function downloadMd() {
@@ -901,11 +1017,16 @@ function downloadMd() {
 }
 
 function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast', 3000);
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 3000);
 }
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+applyLang();
+checkStatus();
+setInterval(checkStatus, 15000);
 </script>
 </body>
 </html>
