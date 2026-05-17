@@ -415,7 +415,7 @@
         <div class="field">
           <label>Modèle Ollama</label>
           <select id="optModel">
-            <option value="">— config.yaml —</option>
+            <option value="">Modèle par défaut (défini dans config.yaml)</option>
             <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
             <option value="mistral:7b">mistral:7b</option>
             <option value="llama3.2:3b">llama3.2:3b (rapide)</option>
@@ -618,7 +618,15 @@ async function startConvert() {
   progress.classList.add('active');
   fill.className = 'progress-bar-fill';
   document.getElementById('timerRemaining').style.color = 'var(--warn)';
-  startTimer(60);
+  const modelEstimates = {
+    '':                              60,
+    'qwen2.5:7b':                    60,
+    'llama3.2:3b':                   30,
+    'mistral:7b':                   120,
+    'mistral:7b-instruct-q4_K_M':   90,
+  };
+  const selectedModel = document.getElementById('optModel').value;
+  startTimer(modelEstimates[selectedModel] ?? 90);
 
   let stepIdx = 0;
   const stepInterval = setInterval(() => {
