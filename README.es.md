@@ -37,6 +37,16 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 
 ---
 
+## Interfaz
+
+- Trilingüe FR / EN / ES (botones de bandera, persistencia localStorage)
+- Indicador de modelo en tiempo real: se actualiza al instante al cambiar de modelo o de modo
+- Contador de tiempo restante con estimación por modelo
+- Botón Stop para cancelar una conversión en curso
+- Vista previa Markdown renderizada o en fuente, descarga directa
+
+---
+
 ## Modos de extracción
 
 | Modo | LLM | Velocidad | Uso |

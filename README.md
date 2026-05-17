@@ -55,6 +55,16 @@ output/note.md         →  copie optionnelle dans le vault
 
 ---
 
+## Interface
+
+- Trilingue FR / EN / ES (boutons drapeau, persistance localStorage)
+- Badge modèle en temps réel : se met à jour instantanément au changement de modèle ou de mode
+- Compteur de temps restant avec estimation par modèle
+- Bouton Stop pour annuler une conversion en cours
+- Aperçu Markdown rendu ou source, téléchargement direct
+
+---
+
 ## Modes d'extraction
 
 | Mode | LLM | Vitesse | Usage |

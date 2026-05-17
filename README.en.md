@@ -37,6 +37,16 @@ Subsequent launches take 2-3 seconds.
 
 ---
 
+## Interface
+
+- Trilingual FR / EN / ES (flag buttons, localStorage persistence)
+- Live model badge: updates instantly when changing model or extraction mode
+- Countdown timer with per-model time estimate
+- Stop button to cancel an ongoing conversion
+- Rendered or source Markdown preview, direct download
+
+---
+
 ## Extraction Modes
 
 | Mode | LLM | Speed | Use case |
