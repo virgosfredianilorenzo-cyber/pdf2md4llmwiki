@@ -465,7 +465,7 @@
         <div id="llmOptions">
           <div class="field">
             <label data-i18n="opt.model"></label>
-            <select id="optModel">
+            <select id="optModel" onchange="lastModelUsed=null; updateBadge()">
               <option value="" data-i18n="opt.model.default"></option>
               <option value="qwen2.5:7b">qwen2.5:7b (recommandé FR)</option>
               <option value="mistral:7b">mistral:7b</option>
@@ -731,7 +731,19 @@ let chunksData = [];
 let timerInterval = null;
 let abortController = null;
 let lastModelUsed = null;
+let configModel = '—';
 let currentMode = 'detailed';
+
+// ─── Badge ───────────────────────────────────────────────────────────────────
+function updateBadge() {
+  const badge = document.getElementById('modelBadge');
+  if (currentMode === 'raw') {
+    badge.textContent = '— (brut)';
+  } else {
+    const sel = document.getElementById('optModel').value;
+    badge.textContent = lastModelUsed || sel || configModel;
+  }
+}
 
 // ─── Mode ────────────────────────────────────────────────────────────────────
 function setMode(mode) {
@@ -739,6 +751,7 @@ function setMode(mode) {
   document.getElementById('modeDetailed').classList.toggle('selected', mode === 'detailed');
   document.getElementById('modeRaw').classList.toggle('selected', mode === 'raw');
   document.getElementById('llmOptions').style.display = mode === 'raw' ? 'none' : '';
+  updateBadge();
 }
 
 // ─── Timer ───────────────────────────────────────────────────────────────────
@@ -772,15 +785,15 @@ async function checkStatus() {
     const d = await r.json();
     const dot = document.getElementById('statusDot');
     const label = document.getElementById('statusLabel');
-    const badge = document.getElementById('modelBadge');
     if (d.ollama) {
       dot.className = 'status-dot ok';
       label.textContent = t('status.active') + d.models;
-      badge.textContent = lastModelUsed || d.current_model;
+      configModel = d.current_model || '—';
     } else {
       dot.className = 'status-dot err';
       label.textContent = t('status.notfound');
     }
+    updateBadge();
   } catch(e) {
     document.getElementById('statusLabel').textContent = t('status.unreachable');
   }
@@ -812,7 +825,7 @@ function resetUI() {
   if (abortController) { abortController.abort(); abortController = null; }
   clearInterval(timerInterval); timerInterval = null;
 
-  currentFilename = ''; currentMd = ''; chunksData = []; lastModelUsed = null;
+  currentFilename = ''; currentMd = ''; chunksData = []; lastModelUsed = null; updateBadge();
   document.getElementById('fileInput').value = '';
   document.getElementById('fileName').textContent = '';
   document.getElementById('dropzone').classList.remove('has-file');
