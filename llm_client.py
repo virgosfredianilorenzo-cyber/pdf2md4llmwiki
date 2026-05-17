@@ -10,7 +10,7 @@ import ollama
 from extractor import PDFDocument, sections_to_text
 
 
-PROMPT_TEMPLATE = """\
+PROMPT_DETAILED = """\
 Tu es un assistant expert en knowledge management et en RAG (Retrieval Augmented Generation).
 Ta mission : transformer le contenu extrait d'un PDF en une note Markdown atomique,
 optimisée pour un LLMWiki (style Karpathy) ou un vault Obsidian.
@@ -28,7 +28,8 @@ Génère une note Markdown structurée avec :
 1. Un bloc frontmatter YAML entre --- (titre, auteur, date_extraction, tags, source, résumé_court)
 2. Un résumé de 2-3 phrases (section ## Résumé)
 3. Le contenu restructuré en sections atomiques H2/H3 claires :
-   - Chaque section H2 doit commencer par un paragraphe de synthèse (2-4 phrases) qui résume l'essentiel de cette partie
+   - CHAQUE section H2, même courte, doit commencer par un paragraphe de synthèse détaillée
+     (minimum 3-5 phrases expliquant l'essentiel, le contexte et les implications)
    - Suivi du contenu détaillé (points clés, listes, tableaux)
 4. Des [[wikilinks]] pour les concepts importants (noms propres, termes techniques)
 5. Une section ## Concepts clés avec les termes définis brièvement
@@ -100,7 +101,7 @@ def structure_document(
     """
     content = sections_to_text(pdf_doc.sections, max_chars=6000)
 
-    prompt = PROMPT_TEMPLATE.format(
+    prompt = PROMPT_DETAILED.format(
         title=pdf_doc.title,
         author=pdf_doc.author or "inconnu",
         pages=pdf_doc.pages,
@@ -114,7 +115,7 @@ def structure_document(
         messages=[{"role": "user", "content": prompt}],
         options={
             "temperature": temperature,
-            "num_predict": 4096,
+            "num_predict": 8192,
         },
     )
 
