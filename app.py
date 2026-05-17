@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from extractor import extract
-from llm_client import check_ollama_running, chunk_for_rag, structure_document
+from llm_client import check_ollama_running, chunk_for_rag, format_raw, structure_document
 from formatter import process_markdown, save_markdown
 
 
@@ -58,6 +58,7 @@ async def convert(
     language: str = Form(None),
     max_tags: int = Form(None),
     add_chunks: bool = Form(False),
+    mode: str = Form("detailed"),
 ):
     """
     Endpoint principal :
@@ -87,15 +88,19 @@ async def convert(
         # Étape 1 : Extraction
         pdf_doc = extract(tmp_path)
 
-        # Étape 2 : Structuration LLM
-        raw_md = structure_document(
-            pdf_doc,
-            model=model,
-            language=language,
-            max_tags=max_tags,
-            temperature=CONFIG.get("temperature", 0.2),
-            timeout=CONFIG.get("ollama_timeout", 120),
-        )
+        # Étape 2 : Structuration
+        if mode == "raw":
+            raw_md = format_raw(pdf_doc, file.filename)
+            model = "— (mode brut)"
+        else:
+            raw_md = structure_document(
+                pdf_doc,
+                model=model,
+                language=language,
+                max_tags=max_tags,
+                temperature=CONFIG.get("temperature", 0.2),
+                timeout=CONFIG.get("ollama_timeout", 120),
+            )
 
         # Étape 3 : Post-traitement
         final_md = process_markdown(raw_md, file.filename)
@@ -120,6 +125,7 @@ async def convert(
             "vault_path": save_info["vault_path"],
             "markdown": final_md,
             "model_used": model,
+            "mode": mode,
             "stats": {
                 "pages": pdf_doc.pages,
                 "sections_extracted": len(pdf_doc.sections),
