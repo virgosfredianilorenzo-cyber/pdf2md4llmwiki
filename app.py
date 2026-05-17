@@ -35,7 +35,10 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 async def index():
     """Sert l'interface principale."""
     html_path = static_dir / "index.html"
-    return HTMLResponse(html_path.read_text(encoding="utf-8"))
+    return HTMLResponse(
+        content=html_path.read_text(encoding="utf-8"),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
 
 
 @app.get("/api/status")

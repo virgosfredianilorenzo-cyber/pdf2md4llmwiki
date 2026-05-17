@@ -580,6 +580,7 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversion terminée',
     'conv.stopped':      '⏹ Arrêté par l\'utilisateur',
     'conv.error':        '✗ Erreur : ',
+    'conv.confirm':      'Le résultat actuel sera remplacé. Continuer ?',
     'copied':            'Copié dans le presse-papier',
   },
   en: {
@@ -618,6 +619,7 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversion complete',
     'conv.stopped':      '⏹ Stopped by user',
     'conv.error':        '✗ Error: ',
+    'conv.confirm':      'The current result will be replaced. Continue?',
     'copied':            'Copied to clipboard',
   },
   es: {
@@ -656,6 +658,7 @@ const TRANSLATIONS = {
     'conv.done':         '✓ Conversión completada',
     'conv.stopped':      '⏹ Detenido por el usuario',
     'conv.error':        '✗ Error: ',
+    'conv.confirm':      'El resultado actual será reemplazado. ¿Continuar?',
     'copied':            'Copiado al portapapeles',
   },
 };
@@ -796,6 +799,7 @@ function stopConvert() {
 // ─── Conversion ──────────────────────────────────────────────────────────────
 async function startConvert() {
   if (!currentFilename) return;
+  if (currentMd && !confirm(t('conv.confirm'))) return;
   const btn = document.getElementById('btnConvert');
   const btnStop = document.getElementById('btnStop');
   btn.disabled = true;
@@ -959,6 +963,7 @@ function showToast(msg, type='') {
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 applyLang();
+updateBadge();
 checkStatus();
 setInterval(checkStatus, 15000);
 </script>
