@@ -6,7 +6,7 @@
 
 Convierte PDFs en notas Markdown estructuradas para tu vault **Obsidian** o un **LLMWiki estilo Karpathy**.
 
-100% local · sin red externa · interfaz en navegador · Linux / macOS / Windows.
+**100% local · sin red externa · interfaz en navegador · Linux / macOS / Windows**
 
 ---
 
@@ -37,15 +37,22 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 
 ---
 
-## Interfaz
+## Arquitectura
 
-- Trilingüe FR / EN / ES (botones de bandera, persistencia localStorage)
-- Indicador de modelo en tiempo real: se actualiza al instante al cambiar de modelo o de modo
-- Descarga de modelos Ollama desde la interfaz con barra de progreso en tiempo real
-- Lista de modelos dinámica (solo muestra los modelos instalados)
-- Botón Stop funcional: cancela la conversión en el servidor al detectar la desconexión del cliente
-- Modal de confirmación animado antes de sobrescribir un resultado (fondo difuminado, Esc/Enter, clic exterior)
-- Vista previa Markdown renderizada o en fuente, descarga directa
+```
+PDF (carga desde navegador)
+  ↓
+FastAPI local (app.py)  ←  http://localhost:8000
+  ↓
+pymupdf + pdfplumber   →  texto, estructura H1/H2/H3, tablas
+  ↓
+[Síntesis detalladas]  Ollama (LLM local)  →  estructuración, resumen, wikilinks, etiquetas
+[Bruta estructurada]   formateador directo →  instantáneo, sin LLM
+  ↓
+formatter.py           →  frontmatter YAML Obsidian, normalización etiquetas, wikilinks
+  ↓
+output/nota.md         →  copia opcional al vault Obsidian
+```
 
 ---
 
@@ -56,28 +63,28 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 | **Síntesis detalladas** | Sí (Ollama) | 30-120s | Nota wiki completa con síntesis por sección |
 | **Bruta estructurada** | No | < 1s | Contenido completo preservado, ideal para archivo o post-procesamiento |
 
-**Síntesis detalladas** — cada sección H2 recibe un párrafo de síntesis en profundidad de 8 a 15 frases, y el resumen global alcanza 15 a 20 frases. El frontmatter YAML es totalmente compatible con Obsidian (tags en lista, marca de tiempo completa `YYYY-MM-DDTHH:MM:SS`).
+**Síntesis detalladas** — el LLM produce:
+- un resumen global de **15 a 20 frases** que cubre contexto, tesis, métodos, resultados y límites
+- un párrafo de síntesis en profundidad de **8 a 15 frases** para cada sección H2
+- `[[wikilinks]]` sobre todos los conceptos clave
+- una sección **Conceptos clave** con definiciones desarrolladas
+- frontmatter YAML totalmente compatible con Obsidian (tags en lista, marca de tiempo `YYYY-MM-DDTHH:MM:SS`)
 
-**Bruta estructurada** — extracción pura sin llamada de red. La jerarquía del documento (títulos H1/H2/H3, párrafos, tablas) se conserva tal cual en Markdown.
+**Bruta estructurada** — extracción pura sin llamada de red. La jerarquía del documento (H1/H2/H3, párrafos, tablas) se conserva tal cual en Markdown.
 
 ---
 
-## Arquitectura
+## Interfaz
 
-```
-PDF (carga desde navegador)
-  ↓
-FastAPI local (app.py)  ←  http://localhost:8000
-  ↓
-pymupdf + pdfplumber   →  texto, estructura H1/H2/H3, tablas
-  ↓
-[detallado] Ollama (LLM local)  →  estructuración, resumen, etiquetas, wikilinks
-[bruto]     formateador directo →  instantáneo, sin LLM
-  ↓
-Formateador            →  frontmatter YAML, nomenclatura Obsidian
-  ↓
-output/nota.md         →  copia opcional al vault
-```
+- **Trilingüe FR / EN / ES** — botones de bandera, persistencia `localStorage`
+- **Indicador de modelo en tiempo real** — se actualiza al instante al cambiar de modelo o de modo
+- **Lista de modelos dinámica** — muestra solo los modelos Ollama instalados
+- **Instalación de modelos desde la UI** — sección ⊕ con barra de progreso SSE en tiempo real
+- **Botón Stop** — cancela la conversión en el servidor al detectar la desconexión del cliente
+- **Modal de confirmación animado** — antes de sobrescribir un resultado (fondo difuminado, Esc/Enter, clic exterior)
+- **Vista previa triple** — fuente Markdown, HTML renderizado, chunks RAG
+- **Copiar y descargar** — el archivo `.md` generado
+- **Estadísticas post-conversión** — páginas, secciones, caracteres, chunks RAG
 
 ---
 
@@ -86,22 +93,43 @@ output/nota.md         →  copia opcional al vault
 Edita `config.yaml` antes de lanzar:
 
 ```yaml
-model: qwen2.5:7b               # modelo Ollama
-vault_path: ~/Obsidian/MyVault  # ruta del vault, o null
-language: fr
-max_tags: 8
-chunk_size: 400
-port: 8000
+model: qwen2.5:7b               # modelo Ollama por defecto
+vault_path: null                 # ruta del vault Obsidian, o null
+output_dir: ./output             # carpeta de salida local
+language: fr                     # idioma de redacción de la nota
+max_tags: 8                      # número máximo de etiquetas generadas
+chunk_size: 400                  # tamaño de chunks RAG (tokens aprox.)
+temperature: 0.2                 # creatividad del LLM (0.0 = determinista)
+ollama_timeout: 120              # timeout de Ollama en segundos
+port: 8000                       # puerto del servidor local
+```
+
+> El modelo, el idioma y las etiquetas también se pueden cambiar directamente desde la interfaz.
+
+---
+
+## Modelos Ollama
+
+### Instalación
+
+Los modelos se pueden instalar de dos formas:
+
+**Desde la interfaz** (recomendado) — hacer clic en ⊕ Instalar un modelo en la UI, introducir el nombre del modelo y pulsar Descargar.
+
+**Línea de comandos**:
+```bash
+ollama pull qwen2.5:7b
 ```
 
 ### Modelos recomendados
 
-| Modelo | RAM | Calidad FR | Velocidad |
-|--------|-----|-----------|---------|
+| Modelo | RAM | Calidad | Velocidad |
+|--------|-----|---------|-----------|
 | `qwen2.5:7b` | 4 GB | ⭐⭐⭐⭐⭐ | ★★★★ |
 | `mistral:7b` | 4 GB | ⭐⭐⭐⭐ | ★★★★ |
 | `llama3.2:3b` | 2 GB | ⭐⭐⭐ | ★★★★★ |
 | `mistral:7b-instruct-q4_K_M` | 2.5 GB | ⭐⭐⭐⭐ | ★★★★★ |
+| `gemma3:4b` | 3 GB | ⭐⭐⭐⭐ | ★★★★★ |
 
 ---
 
@@ -111,7 +139,7 @@ port: 8000
 |--|-------|-------|---------|
 | Python | `sudo apt install python3.11` | `brew install python@3.11` | [python.org](https://python.org/downloads) — marcar "Add to PATH" |
 | Ollama | auto vía start.sh | auto vía start.sh | auto vía start.bat |
-| RAM | 4 GB mín | 4 GB mín | 4 GB mín |
+| RAM | 4 GB mín (7B) · 2 GB (3B) | igual | igual |
 
 ---
 

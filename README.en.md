@@ -6,7 +6,7 @@
 
 Converts PDFs into structured Markdown notes for your **Obsidian** vault or a **Karpathy-style LLMWiki**.
 
-Fully local · zero external network · browser interface · Linux / macOS / Windows.
+**Fully local · zero external network · browser interface · Linux / macOS / Windows**
 
 ---
 
@@ -37,15 +37,22 @@ Subsequent launches take 2-3 seconds.
 
 ---
 
-## Interface
+## Architecture
 
-- Trilingual FR / EN / ES (flag buttons, localStorage persistence)
-- Live model badge: updates instantly when changing model or extraction mode
-- Download Ollama models directly from the UI with a real-time progress bar
-- Model dropdown populated dynamically (only installed models shown)
-- Functional Stop button: cancels conversion server-side on client disconnect
-- Animated confirmation modal before overwriting a result (blurred backdrop, Esc/Enter, click-outside)
-- Rendered or source Markdown preview, direct download
+```
+PDF (browser upload)
+  ↓
+FastAPI local (app.py)  ←  http://localhost:8000
+  ↓
+pymupdf + pdfplumber   →  text, H1/H2/H3 structure, tables
+  ↓
+[Detailed syntheses]  Ollama (local LLM)  →  structuring, summary, wikilinks, tags
+[Raw structured]      direct formatter    →  instant, no LLM
+  ↓
+formatter.py          →  Obsidian YAML frontmatter, tag normalisation, wikilinks
+  ↓
+output/note.md        →  optional copy to Obsidian vault
+```
 
 ---
 
@@ -56,28 +63,28 @@ Subsequent launches take 2-3 seconds.
 | **Detailed syntheses** | Yes (Ollama) | 30-120s | Full wiki note with per-section synthesis |
 | **Raw structured** | No | < 1s | Full content preserved, ideal for archiving or post-processing |
 
-**Detailed syntheses** — every H2 section gets an in-depth synthesis paragraph of 8 to 15 sentences, and the global summary reaches 15 to 20 sentences. YAML frontmatter is fully Obsidian-compatible (tags as list, full timestamp `YYYY-MM-DDTHH:MM:SS`).
+**Detailed syntheses** — the LLM produces:
+- a global summary of **15 to 20 sentences** covering context, theses, methods, results and limitations
+- an in-depth synthesis paragraph of **8 to 15 sentences** for every H2 section
+- `[[wikilinks]]` on all key concepts
+- a **Key concepts** section with developed definitions
+- fully Obsidian-compatible YAML frontmatter (tags as list, timestamp `YYYY-MM-DDTHH:MM:SS`)
 
-**Raw structured** — pure extraction with no network call. Document hierarchy (H1/H2/H3 headings, paragraphs, tables) is preserved as-is in Markdown.
+**Raw structured** — pure extraction with no network call. Document hierarchy (H1/H2/H3, paragraphs, tables) is preserved as-is in Markdown.
 
 ---
 
-## Architecture
+## Interface
 
-```
-PDF (browser upload)
-  ↓
-FastAPI local (app.py)  ←  http://localhost:8000
-  ↓
-pymupdf + pdfplumber   →  text, H1/H2/H3 structure, tables
-  ↓
-[detailed] Ollama (local LLM)  →  structuring, summary, tags, wikilinks
-[raw]      direct formatter    →  instant, no LLM
-  ↓
-Formatter              →  YAML frontmatter, Obsidian naming
-  ↓
-output/note.md         →  optional copy to vault
-```
+- **Trilingual FR / EN / ES** — flag buttons, `localStorage` persistence
+- **Live model badge** — updates instantly when changing model or extraction mode
+- **Dynamic model dropdown** — shows only installed Ollama models
+- **Model install from UI** — ⊕ section with real-time SSE progress bar
+- **Stop button** — cancels conversion server-side on client disconnect
+- **Animated confirmation modal** — before overwriting a result (blurred backdrop, Esc/Enter, click-outside)
+- **Triple preview** — Markdown source, rendered HTML, RAG chunks
+- **Copy & download** — of the generated `.md` file
+- **Post-conversion stats** — pages, sections, characters, RAG chunks
 
 ---
 
@@ -86,22 +93,43 @@ output/note.md         →  optional copy to vault
 Edit `config.yaml` before launching:
 
 ```yaml
-model: qwen2.5:7b               # Ollama model
-vault_path: ~/Obsidian/MyVault  # vault path, or null
-language: fr
-max_tags: 8
-chunk_size: 400
-port: 8000
+model: qwen2.5:7b               # default Ollama model
+vault_path: null                 # Obsidian vault path, or null
+output_dir: ./output             # local output directory
+language: fr                     # note writing language
+max_tags: 8                      # max number of generated tags
+chunk_size: 400                  # RAG chunk size (approx. tokens)
+temperature: 0.2                 # LLM creativity (0.0 = deterministic)
+ollama_timeout: 120              # Ollama timeout in seconds
+port: 8000                       # local server port
 ```
 
-### Recommended models
+> Model, language and tags can also be changed directly from the interface.
 
-| Model | RAM | FR Quality | Speed |
-|-------|-----|-----------|-------|
+---
+
+## Ollama Models
+
+### Installation
+
+Models can be installed two ways:
+
+**From the interface** (recommended) — click ⊕ Install a model in the UI, enter the model name and click Download.
+
+**Command line**:
+```bash
+ollama pull qwen2.5:7b
+```
+
+### Recommended Models
+
+| Model | RAM | Quality | Speed |
+|-------|-----|---------|-------|
 | `qwen2.5:7b` | 4 GB | ⭐⭐⭐⭐⭐ | ★★★★ |
 | `mistral:7b` | 4 GB | ⭐⭐⭐⭐ | ★★★★ |
 | `llama3.2:3b` | 2 GB | ⭐⭐⭐ | ★★★★★ |
 | `mistral:7b-instruct-q4_K_M` | 2.5 GB | ⭐⭐⭐⭐ | ★★★★★ |
+| `gemma3:4b` | 3 GB | ⭐⭐⭐⭐ | ★★★★★ |
 
 ---
 
@@ -111,11 +139,11 @@ port: 8000
 |--|-------|-------|---------|
 | Python | `sudo apt install python3.11` | `brew install python@3.11` | [python.org](https://python.org/downloads) — check "Add to PATH" |
 | Ollama | auto via start.sh | auto via start.sh | auto via start.bat |
-| RAM | 4 GB min | 4 GB min | 4 GB min |
+| RAM | 4 GB min (7B) · 2 GB (3B) | same | same |
 
 ---
 
-## Support the project
+## Support the Project
 
 <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Ko-fi"></a>
 
