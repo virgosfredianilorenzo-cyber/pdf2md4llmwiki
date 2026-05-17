@@ -30,11 +30,14 @@ Génère une note Markdown structurée avec :
 
 1. Un bloc frontmatter YAML entre --- (titre, auteur, date_extraction, tags, source, résumé_court)
 
-2. Un résumé global (section ## Résumé) de 6 à 10 phrases couvrant :
-   - Le sujet principal et son contexte
-   - Les arguments ou thèses centraux
-   - Les conclusions ou apports clés
-   - La pertinence pour un LLMWiki
+2. Un résumé global (section ## Résumé) de 25 à 30 phrases couvrant :
+   - Le sujet principal et son contexte historique ou disciplinaire
+   - Les arguments ou thèses centraux, développés en détail
+   - Les méthodes, approches ou cadres théoriques employés
+   - Les résultats, données ou exemples concrets présentés
+   - Les conclusions ou apports clés du document
+   - Les limites, nuances ou points de débat soulevés
+   - La pertinence et les applications pratiques pour un LLMWiki ou vault Obsidian
 
 3. Le contenu restructuré en sections H2/H3 :
    - CHAQUE section H2, même courte, DOIT commencer par un paragraphe de synthèse approfondie

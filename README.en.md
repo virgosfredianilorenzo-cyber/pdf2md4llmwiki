@@ -44,7 +44,7 @@ Subsequent launches take 2-3 seconds.
 | **Detailed syntheses** | Yes (Ollama) | 30-120s | Full wiki note with per-section synthesis |
 | **Raw structured** | No | < 1s | Full content preserved, ideal for archiving or post-processing |
 
-**Detailed syntheses** — every H2 section, even short ones, gets a 3-5 sentence synthesis paragraph. Optimized for LLMWiki or Obsidian vault ingestion.
+**Detailed syntheses** — every H2 section, even short ones, gets an in-depth synthesis paragraph of 8 to 15 sentences, and the global summary reaches 25 to 30 sentences. Optimized for LLMWiki or Obsidian vault ingestion.
 
 **Raw structured** — pure extraction with no network call. Document hierarchy (H1/H2/H3 headings, paragraphs, tables) is preserved as-is in Markdown.
 

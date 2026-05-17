@@ -44,7 +44,7 @@ Los lanzamientos siguientes tardan 2-3 segundos.
 | **Síntesis detalladas** | Sí (Ollama) | 30-120s | Nota wiki completa con síntesis por sección |
 | **Bruta estructurada** | No | < 1s | Contenido completo preservado, ideal para archivo o post-procesamiento |
 
-**Síntesis detalladas** — cada sección H2, aunque sea corta, recibe un párrafo de síntesis de 3-5 frases. Optimizado para LLMWiki o vault Obsidian.
+**Síntesis detalladas** — cada sección H2, aunque sea corta, recibe un párrafo de síntesis en profundidad de 8 a 15 frases, y el resumen global alcanza 25 a 30 frases. Optimizado para LLMWiki o vault Obsidian.
 
 **Bruta estructurada** — extracción pura sin llamada de red. La jerarquía del documento (títulos H1/H2/H3, párrafos, tablas) se conserva tal cual en Markdown.
 
