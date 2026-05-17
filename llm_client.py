@@ -27,7 +27,9 @@ Génère une note Markdown structurée avec :
 
 1. Un bloc frontmatter YAML entre --- (titre, auteur, date_extraction, tags, source, résumé_court)
 2. Un résumé de 2-3 phrases (section ## Résumé)
-3. Le contenu restructuré en sections atomiques H2/H3 claires
+3. Le contenu restructuré en sections atomiques H2/H3 claires :
+   - Chaque section H2 doit commencer par un paragraphe de synthèse (2-4 phrases) qui résume l'essentiel de cette partie
+   - Suivi du contenu détaillé (points clés, listes, tableaux)
 4. Des [[wikilinks]] pour les concepts importants (noms propres, termes techniques)
 5. Une section ## Concepts clés avec les termes définis brièvement
 6. Une section ## Références si des sources sont citées dans le doc
