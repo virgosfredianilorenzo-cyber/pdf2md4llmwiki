@@ -5,7 +5,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
-## [1.1.0] — 2026-05-18
+## [1.1.0] — 2026-05-18 · [Release](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.1.0)
 
 ### Sécurité
 - **Path traversal** — endpoint `/api/download/{filename}` : ajout de `.resolve()` et vérification de préfixe pour bloquer les séquences `../`
