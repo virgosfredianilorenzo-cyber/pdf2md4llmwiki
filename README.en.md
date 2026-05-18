@@ -8,6 +8,8 @@ Converts PDFs into structured Markdown notes for your **Obsidian** vault or a **
 
 **Fully local · zero external network · browser interface · Linux / macOS / Windows**
 
+[![Release](https://img.shields.io/github/v/release/virgosfredianilorenzo-cyber/pdf2md4llmwiki)](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/latest)
+
 ---
 
 ## Quick Start
