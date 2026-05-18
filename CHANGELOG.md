@@ -5,6 +5,18 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Corrigé
+- Favicon manquant — ajout d'une icône SVG inline pour supprimer le 404 `/favicon.ico` dans les logs
+
+### Documentation
+- Badge release dynamique dans les trois READMEs (FR/EN/ES)
+- Lien vers le CHANGELOG dans les trois READMEs
+- Lien release GitHub sur l'entrée v1.1.0 du CHANGELOG
+
+---
+
 ## [1.1.0] — 2026-05-18 · [Release](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.1.0)
 
 ### Sécurité
