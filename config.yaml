@@ -38,3 +38,9 @@ ollama_timeout: 120
 
 # Port du serveur local
 port: 8000
+
+# Authentification HTTP Basic (optionnel — laisser null pour désactiver)
+# auth_username: admin
+# auth_password: monsecret
+auth_username: null
+auth_password: null

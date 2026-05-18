@@ -59,7 +59,10 @@ if ! command -v ollama &>/dev/null; then
     warn "Ollama absent — installation en cours..."
     OS="$(uname -s)"
     if [ "$OS" = "Linux" ]; then
-        curl -fsSL https://ollama.com/install.sh | sh
+        _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
+        curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
+        sh "$_tmp_install"
+        rm -f "$_tmp_install"
     elif [ "$OS" = "Darwin" ]; then
         if command -v brew &>/dev/null; then
             brew install ollama

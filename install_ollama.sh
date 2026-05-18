@@ -26,7 +26,10 @@ else
             exit 1
         fi
     elif [ "$OS" = "Linux" ]; then
-        curl -fsSL https://ollama.com/install.sh | sh
+        _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
+        curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
+        sh "$_tmp_install"
+        rm -f "$_tmp_install"
     else
         echo "Windows : télécharge https://ollama.com/download/windows"
         exit 1

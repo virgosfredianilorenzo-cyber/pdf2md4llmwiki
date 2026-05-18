@@ -1180,7 +1180,7 @@ function renderMd(md) {
     if (i === 0 && l === '---') { inFrontmatter = true; continue; }
     if (inFrontmatter) {
       if (l === '---') { inFrontmatter = false; html += '<div class="frontmatter">'+fmLines.join('\n')+'</div>'; }
-      else fmLines.push(l);
+      else fmLines.push(esc(l));
       continue;
     }
     if (l.startsWith('```')) {

@@ -6,13 +6,18 @@ Puis ouvre  : http://localhost:8000
 from __future__ import annotations
 import asyncio
 import json
+import logging
+import secrets
 import tempfile
 import threading
 from pathlib import Path
 import yaml
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 
 from extractor import extract
@@ -25,7 +30,29 @@ CONFIG_PATH = Path(__file__).parent / "config.yaml"
 with open(CONFIG_PATH, encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 
-app = FastAPI(title="PDF2LLMWiki", version="1.0.0")
+_http_basic = HTTPBasic(auto_error=False)
+
+def _check_auth(credentials: HTTPBasicCredentials = Depends(_http_basic)) -> None:
+    cfg_user = CONFIG.get("auth_username")
+    cfg_pass = CONFIG.get("auth_password")
+    if not cfg_user or not cfg_pass:
+        return
+    if credentials is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentification requise",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    ok_user = secrets.compare_digest(credentials.username.encode(), str(cfg_user).encode())
+    ok_pass = secrets.compare_digest(credentials.password.encode(), str(cfg_pass).encode())
+    if not (ok_user and ok_pass):
+        raise HTTPException(
+            status_code=401,
+            detail="Identifiants incorrects",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+app = FastAPI(title="PDF2LLMWiki", version="1.0.0", dependencies=[Depends(_check_auth)])
 
 # Sert les fichiers statiques (interface navigateur)
 static_dir = Path(__file__).parent / "static"
@@ -152,7 +179,8 @@ async def convert(
         })
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.exception("Erreur lors de la conversion")
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
 
     finally:
         Path(tmp_path).unlink(missing_ok=True)
@@ -188,14 +216,16 @@ async def pull_model(model: str = Form(...)):
 @app.get("/api/download/{filename}")
 async def download(filename: str):
     """Télécharge un fichier MD généré."""
-    output_dir = Path(CONFIG.get("output_dir", "./output"))
-    file_path = output_dir / filename
+    output_dir = Path(CONFIG.get("output_dir", "./output")).resolve()
+    file_path = (output_dir / filename).resolve()
+    if not str(file_path).startswith(str(output_dir) + "/"):
+        raise HTTPException(status_code=400, detail="Accès refusé")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier introuvable")
     return FileResponse(
         str(file_path),
         media_type="text/markdown",
-        filename=filename,
+        filename=file_path.name,
     )
 
 
@@ -203,4 +233,4 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", CONFIG.get("port", 8000)))
     print(f"\n  PDF2LLMWiki — http://localhost:{port}\n")
-    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
+    uvicorn.run(app, host="127.0.0.1", port=port, reload=False)
