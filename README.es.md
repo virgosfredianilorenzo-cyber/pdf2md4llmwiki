@@ -102,9 +102,28 @@ chunk_size: 400                  # tamaño de chunks RAG (tokens aprox.)
 temperature: 0.2                 # creatividad del LLM (0.0 = determinista)
 ollama_timeout: 120              # timeout de Ollama en segundos
 port: 8000                       # puerto del servidor local
+auth_username: null              # usuario HTTP Basic (null = desactivado)
+auth_password: null              # contraseña HTTP Basic (null = desactivado)
 ```
 
 > El modelo, el idioma y las etiquetas también se pueden cambiar directamente desde la interfaz.
+
+---
+
+## Seguridad
+
+El servidor escucha **únicamente en `127.0.0.1`** (localhost) — no es accesible desde la red local ni desde internet.
+
+### Autenticación (opcional)
+
+Para proteger el acceso en una máquina compartida, activa la autenticación HTTP Basic en `config.yaml`:
+
+```yaml
+auth_username: admin
+auth_password: micontraseña
+```
+
+El navegador mostrará un cuadro de diálogo nativo en la primera visita. Deja ambos campos en `null` para desactivar la autenticación (comportamiento por defecto).
 
 ---
 
