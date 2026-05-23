@@ -154,6 +154,23 @@ ollama pull qwen2.5:7b
 
 ---
 
+## Changelog
+
+### [v1.2.0](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.2.0) — 2026-05-23
+- Solo **Linux** — soporte para Windows y macOS eliminado
+- `start.bat` eliminado
+
+### [v1.1.0](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.1.0) — 2026-05-18
+- Correcciones de seguridad (path traversal, XSS, binding de red)
+- Autenticación HTTP Basic opcional
+
+### [v1.0.0](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.0.0) — 2026-05-17
+- Versión inicial
+
+[Changelog completo →](CHANGELOG.md)
+
+---
+
 ## Apoyar el proyecto
 
 <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Ko-fi"></a>
