@@ -7,13 +7,23 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ## [Unreleased]
 
-### Corrigé
-- Favicon manquant — ajout d'une icône SVG inline pour supprimer le 404 `/favicon.ico` dans les logs
+---
+
+## [1.2.0] — 2026-05-23 · [Release](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.2.0)
+
+### Supprimé
+- Support Windows et macOS — l'outil est désormais **Linux uniquement**
+- `start.bat` supprimé du dépôt
+- Branches Darwin/macOS dans `start.sh` et `install_ollama.sh`
 
 ### Documentation
+- READMEs (FR/EN/ES) : suppression sections Windows, colonnes macOS/Windows, sous-titres plateforme ; pré-requis en liste simple
 - Badge release dynamique dans les trois READMEs (FR/EN/ES)
 - Lien vers le CHANGELOG dans les trois READMEs
 - Lien release GitHub sur l'entrée v1.1.0 du CHANGELOG
+
+### Corrigé
+- Favicon manquant — ajout d'une icône SVG inline pour supprimer le 404 `/favicon.ico` dans les logs
 
 ---
 
@@ -51,5 +61,6 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Script de démarrage automatisé (`start.sh`)
 - Support Ko-fi
 
+[1.2.0]: https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.2.0
 [1.1.0]: https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.1.0
 [1.0.0]: https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.0.0
