@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# start.sh — PDF2LLMWiki · Linux / macOS
+# start.sh — PDF2LLMWiki · Linux
 # Usage : bash start.sh
 # ============================================================
 
@@ -16,7 +16,7 @@ step() { echo -e "\n${CYAN}▸${NC} $1"; }
 echo ""
 echo "  ╔══════════════════════════════╗"
 echo "  ║       PDF2LLMWiki            ║"
-echo "  ║       Linux / macOS          ║"
+echo "  ║       Linux                  ║"
 echo "  ╚══════════════════════════════╝"
 echo ""
 
@@ -32,7 +32,7 @@ for cmd in python3.12 python3.11 python3.10 python3 python; do
         fi
     fi
 done
-[ -z "$PYTHON" ] && err "Python 3.10+ requis.\n  Ubuntu/Debian : sudo apt install python3.11\n  macOS         : brew install python@3.11"
+[ -z "$PYTHON" ] && err "Python 3.10+ requis.\n  Ubuntu/Debian : sudo apt install python3.11"
 
 # ── 2. Venv ─────────────────────────────────────────────────
 step "Environnement virtuel"
@@ -57,21 +57,10 @@ fi
 step "Ollama"
 if ! command -v ollama &>/dev/null; then
     warn "Ollama absent — installation en cours..."
-    OS="$(uname -s)"
-    if [ "$OS" = "Linux" ]; then
-        _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
-        curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
-        sh "$_tmp_install"
-        rm -f "$_tmp_install"
-    elif [ "$OS" = "Darwin" ]; then
-        if command -v brew &>/dev/null; then
-            brew install ollama
-        else
-            err "Installe Ollama : https://ollama.com/download/mac\nOu installe Homebrew : https://brew.sh"
-        fi
-    else
-        err "OS non supporté. Utilise start.bat sous Windows."
-    fi
+    _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
+    curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
+    sh "$_tmp_install"
+    rm -f "$_tmp_install"
 fi
 ok "Ollama $(ollama --version 2>/dev/null | head -1)"
 
@@ -126,7 +115,6 @@ echo ""
 # Ouvre le navigateur après 1.5s (best-effort)
 (sleep 1.5 && {
     command -v xdg-open &>/dev/null && xdg-open "http://localhost:$PORT" && exit
-    command -v open     &>/dev/null && open     "http://localhost:$PORT" && exit
     true
 }) &
 

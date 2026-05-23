@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # install_ollama.sh — Installation Ollama + modèle LLM local
-# Compatible Linux (Ubuntu/Debian) et macOS
+# Compatible Linux (Ubuntu/Debian)
 # ============================================================
 
 set -e
@@ -10,38 +10,21 @@ echo "======================================"
 echo "  PDF2LLMWiki — Installation Ollama"
 echo "======================================"
 
-OS="$(uname -s)"
-
 # --- Installation Ollama ---
 if command -v ollama &>/dev/null; then
     echo "✓ Ollama déjà installé : $(ollama --version)"
 else
     echo "→ Installation de Ollama..."
-    if [ "$OS" = "Darwin" ]; then
-        if command -v brew &>/dev/null; then
-            brew install ollama
-        else
-            echo "Télécharge Ollama sur https://ollama.com/download/mac"
-            open "https://ollama.com/download/mac" 2>/dev/null || true
-            exit 1
-        fi
-    elif [ "$OS" = "Linux" ]; then
-        _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
-        curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
-        sh "$_tmp_install"
-        rm -f "$_tmp_install"
-    else
-        echo "Windows : télécharge https://ollama.com/download/windows"
-        exit 1
-    fi
+    _tmp_install=$(mktemp /tmp/ollama_install.XXXXXX.sh)
+    curl -fsSL https://ollama.com/install.sh -o "$_tmp_install"
+    sh "$_tmp_install"
+    rm -f "$_tmp_install"
 fi
 
 # --- Démarrage service Ollama ---
 echo "→ Démarrage du service Ollama..."
-if [ "$OS" = "Linux" ]; then
-    systemctl is-active --quiet ollama 2>/dev/null || ollama serve &>/dev/null &
-    sleep 2
-fi
+systemctl is-active --quiet ollama 2>/dev/null || ollama serve &>/dev/null &
+sleep 2
 
 # --- Choix du modèle ---
 echo ""

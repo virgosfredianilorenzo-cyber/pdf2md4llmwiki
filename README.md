@@ -6,7 +6,7 @@
 
 Transforme des PDFs en notes Markdown structurées pour ton vault **Obsidian** ou un **LLMWiki** style Karpathy.
 
-**Full local · zéro réseau externe · interface navigateur · Linux / macOS / Windows**
+**Full local · zéro réseau externe · interface navigateur · Linux**
 
 [![Release](https://img.shields.io/github/v/release/virgosfredianilorenzo-cyber/pdf2md4llmwiki)](https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/latest) · [Changelog](CHANGELOG.md)
 
@@ -14,16 +14,8 @@ Transforme des PDFs en notes Markdown structurées pour ton vault **Obsidian** o
 
 ## Démarrage en une commande
 
-### Linux / macOS
 ```bash
 unzip pdf2llmwiki.zip && cd pdf2llmwiki && bash start.sh
-```
-
-### Windows
-```
-1. Extraire le zip
-2. Double-cliquer sur start.bat
-   — ou dans cmd : cd pdf2llmwiki && start.bat
 ```
 
 Le script fait tout automatiquement :
@@ -156,11 +148,9 @@ ollama pull qwen2.5:7b
 
 ## Pré-requis système
 
-| | Linux | macOS | Windows |
-|--|-------|-------|---------|
-| Python | `sudo apt install python3.11` | `brew install python@3.11` | [python.org](https://python.org/downloads) — cocher "Add to PATH" |
-| Ollama | auto via start.sh | auto via start.sh | auto via start.bat |
-| RAM | 4 Go min (7B) · 2 Go (3B) | idem | idem |
+- **Python 3.10+** — `sudo apt install python3.11`
+- **Ollama** — installé automatiquement par `start.sh`
+- **RAM** — 4 Go min (modèle 7B) · 2 Go (modèle 3B)
 
 ---
 

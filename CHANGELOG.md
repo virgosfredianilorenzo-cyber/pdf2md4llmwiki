@@ -48,7 +48,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Chunks RAG optionnels avec taille configurable
 - Stats post-conversion (pages, sections, caractères, chunks)
 - Badge modèle mis à jour en temps réel
-- Scripts de démarrage automatisés (`start.sh`, `start.bat`)
+- Script de démarrage automatisé (`start.sh`)
 - Support Ko-fi
 
 [1.1.0]: https://github.com/virgosfredianilorenzo-cyber/pdf2md4llmwiki/releases/tag/v1.1.0
