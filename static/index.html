@@ -1175,7 +1175,12 @@ function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function renderMd(md) {
   let html = '';
   const lines = md.split('\n');
-  let inFrontmatter = false, fmLines = [], inPre = false, preLines = [];
+  let inFrontmatter = false, fmLines = [], inPre = false, preLines = [], para = [];
+
+  function flushPara() {
+    if (para.length) { html += '<p>' + para.join(' ') + '</p>'; para = []; }
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i];
     if (i === 0 && l === '---') { inFrontmatter = true; continue; }
@@ -1185,7 +1190,7 @@ function renderMd(md) {
       continue;
     }
     if (l.startsWith('```')) {
-      if (!inPre) { inPre = true; preLines = []; }
+      if (!inPre) { flushPara(); inPre = true; preLines = []; }
       else { inPre = false; html += '<pre><code>'+esc(preLines.join('\n'))+'</code></pre>'; }
       continue;
     }
@@ -1195,14 +1200,15 @@ function renderMd(md) {
     line = line.replace(/`([^`]+)`/g, '<code>$1</code>');
     line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    if (/^# /.test(l)) html += '<h1>'+line.slice(2)+'</h1>';
-    else if (/^## /.test(l)) html += '<h2>'+line.slice(3)+'</h2>';
-    else if (/^### /.test(l)) html += '<h3>'+line.slice(4)+'</h3>';
-    else if (/^\|/.test(l)) html += line + '<br>';
-    else if (/^- /.test(l)) html += '<li>'+line.slice(2)+'</li>';
-    else if (l.trim() === '') html += '<br>';
-    else html += '<p>'+line+'</p>';
+    if (/^# /.test(l))        { flushPara(); html += '<h1>'+line.slice(2)+'</h1>'; }
+    else if (/^## /.test(l))  { flushPara(); html += '<h2>'+line.slice(3)+'</h2>'; }
+    else if (/^### /.test(l)) { flushPara(); html += '<h3>'+line.slice(4)+'</h3>'; }
+    else if (/^\|/.test(l))   { flushPara(); html += line + '<br>'; }
+    else if (/^- /.test(l))   { flushPara(); html += '<li>'+line.slice(2)+'</li>'; }
+    else if (l.trim() === '')  { flushPara(); }
+    else para.push(line);
   }
+  flushPara();
   return html;
 }
 
