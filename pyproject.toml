@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf2md4llmwiki"
+version = "1.2.0"
+description = "PDF → Markdown pour LLM et wikis, avec IA (Ollama)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.9",
+    "pymupdf>=1.24.0",
+    "pdfplumber>=0.11.0",
+    "python-frontmatter>=1.1.0",
+    "ollama>=0.2.0",
+    "pyyaml>=6.0.1",
+    "httpx>=0.27.0",
+    "aiofiles>=23.2.1",
+]
+
+[project.scripts]
+pdf2md4llmwiki = "app:main"
+
+[tool.setuptools]
+py-modules = ["app", "extractor", "formatter", "llm_client"]
